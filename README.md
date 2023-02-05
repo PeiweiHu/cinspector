@@ -1,3 +1,3 @@
-# cinspector v0.0.1
+# cinspector
 
 cinspector - a static C source code analysis framework.

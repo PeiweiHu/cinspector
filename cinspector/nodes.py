@@ -600,6 +600,7 @@ class InitDeclaratorNode(BasicNode):
 
 
 class PreprocArgNode(BasicNode):
+
     def __init__(self, src: str, ts_node=None) -> None:
         super().__init__(src, ts_node)
         # Tree-sitter parser will include the useless spaces
@@ -702,7 +703,7 @@ class EnumSpecifierNode(BasicNode):
                 pre_ele = dic[k_lst[_id - 1]]
                 _v = pre_ele + 1 if type(pre_ele) == int else None
             else:
-                assert(False)
+                assert (False)
             dic[_k] = _v
         return dic
 
