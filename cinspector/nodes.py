@@ -362,6 +362,7 @@ class BasicNode(Util):
             'declaration': DeclarationNode,
             'preproc_function_def': PreprocFunctionDefNode,
             'preproc_def': PreprocDefNode,
+            'preproc_arg': PreprocArgNode,
             'enum_specifier': EnumSpecifierNode,
             'enumerator_list': EnumeratorListNode,
             'enumerator': EnumeratorNode,
@@ -596,6 +597,14 @@ class InitDeclaratorNode(BasicNode):
         super().__init__(src, ts_node)
         self.declarator = self.child_by_field_name('declarator')
         self.value = self.child_by_field_name('value')
+
+
+class PreprocArgNode(BasicNode):
+    def __init__(self, src: str, ts_node=None) -> None:
+        super().__init__(src, ts_node)
+        # Tree-sitter parser will include the useless spaces
+        # in preproc_arg, thus we do strip() for src.
+        self.src = self.src.strip()
 
 
 class PreprocDefNode(BasicNode):
