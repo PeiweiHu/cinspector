@@ -53,7 +53,8 @@ class AbstractNode():
     """
     AbstractNode is the base class of abstract node classes.
     The so-called abstract node is the node that exists for the convenience
-    of analysis. It doesn't correspond to the acutal code elemetnts.
+    of analysis (for example, CFG generation). It doesn't correspond
+    to the acutal code elemetnts.
     """
 
     def __init__(self, type=None) -> None:
@@ -525,14 +526,27 @@ class ParenthesizedExpressionNode(BasicNode):
     def __init__(self, src: str, ts_node=None) -> None:
         super().__init__(src, ts_node)
 
+    def remove_parenthese(self):
+        # children[0] and children[2] is ( and )
+        return self.make_wrapper(self.internal.children[1])
+
 
 class IfStatementNode(BasicNode):
 
     def __init__(self, src: str, ts_node=None) -> None:
         super().__init__(src, ts_node)
         self.condition = self.child_by_field_name('condition')
+        # By AbstractNode, we assume there is a node with the type
+        # if_condition, which is actually non-exist in tree-sitter.
+        self.condition_abs = IfConditionNode(self.condition_field)
         self.consequence = self.child_by_field_name('consequence')
         self.alternative = self.child_by_field_name('alternative')
+
+    def common_entry_constraints(self):
+        return self.condition_abs.common_entry_constraints()
+
+    def entry_constraints(self):
+        return self.condition_abs.entry_constraints()
 
 
 class FunctionDefinitionNode(BasicNode):
