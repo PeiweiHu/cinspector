@@ -538,7 +538,7 @@ class IfStatementNode(BasicNode):
         self.condition = self.child_by_field_name('condition')
         # By AbstractNode, we assume there is a node with the type
         # if_condition, which is actually non-exist in tree-sitter.
-        self.condition_abs = IfConditionNode(self.condition_field)
+        self.condition_abs = IfConditionNode(self.condition)
         self.consequence = self.child_by_field_name('consequence')
         self.alternative = self.child_by_field_name('alternative')
 
