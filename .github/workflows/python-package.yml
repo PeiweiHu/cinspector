@@ -29,7 +29,7 @@ jobs:
         python -m pip install yapf
     - name: Test with yapf
       run: |
-        yapf -d --style=google --recursive .
+        yapf -d -e docs --style=google --recursive .
 
   pytest:
     runs-on: ${{ matrix.os }}
