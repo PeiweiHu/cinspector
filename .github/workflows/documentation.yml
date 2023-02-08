@@ -1,5 +1,4 @@
-# Generate the documents
-name: Deploy documentation
+name: Deploy Documentation
 
 on:
   push:
@@ -13,7 +12,6 @@ permissions:
   id-token: write
 
 jobs:
-
   deploy:
     environment:
       name: github-pages
@@ -26,7 +24,7 @@ jobs:
         run: |
           pip install tree-sitter
           pip install sphinx sphinx_rtd_theme myst_parser
-      - name: generation
+      - name: Generation
         run: |
           sphinx-apidoc cinspector -o docs
           cd docs
