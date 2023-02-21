@@ -367,6 +367,7 @@ class BasicNode(Util):
             'enum_specifier': EnumSpecifierNode,
             'enumerator_list': EnumeratorListNode,
             'enumerator': EnumeratorNode,
+            'parameter_declaration': ParameterDeclarationNode,
         }
         init_func = wrapper_dict[
             ts_node.type] if ts_node.type in wrapper_dict.keys() else BasicNode
@@ -396,9 +397,13 @@ class TypeNode(BasicNode):
     def __init__(self, src: str, ts_node=None) -> None:
         super().__init__(src, ts_node)
         self.pointer_level = 0
+        self.array_level = 0
 
     def is_pointer(self):
         return self.pointer_level != 0
+
+    def is_array(self):
+        return self.array_level != 0
 
 
 class WhileStatementNode(BasicNode):
@@ -738,3 +743,29 @@ class EnumeratorNode(BasicNode):
         super().__init__(src, ts_node)
         self.name = self.child_by_field_name('name')
         self.value = self.child_by_field_name('value')
+
+
+class ParameterDeclarationNode(BasicNode):
+
+    def __init__(self, src: str, ts_node=None) -> None:
+        super().__init__(src, ts_node)
+        self.type = self.child_by_field_name('type')
+        self.declarator = self.child_by_field_name('declarator')
+        # unpack the declarator to get the real name
+        self.name = None
+        # TODO: create more specific type node (use TypeNode as the super
+        # class), since some types have additional properties, like
+        # struct_specifier
+        declarator = self.declarator
+        while True:
+            if declarator.type == 'pointer_declarator':
+                declarator = declarator.child_by_field_name('declarator')
+                self.type.pointer_level += 1
+            elif declarator.type == 'array_declarator':
+                declarator = declarator.child_by_field_name('declarator')
+                self.type.array_level += 1
+            elif declarator.type == 'identifier':
+                self.name = declarator
+                break
+            else:
+                assert (False)
