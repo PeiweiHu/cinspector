@@ -757,7 +757,8 @@ class ParameterDeclarationNode(BasicNode):
         # class), since some types have additional properties, like
         # struct_specifier
         declarator = self.declarator
-        while True:
+        # self.declarator maybe None, e.g. int func(void)
+        while True and declarator:
             if declarator.type == 'pointer_declarator':
                 declarator = declarator.child_by_field_name('declarator')
                 self.type.pointer_level += 1
