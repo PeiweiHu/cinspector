@@ -518,6 +518,7 @@ class DeclarationNode(BasicNode):
         # a tricky solution since tree-sitter child_by_field_name
         # can only return the first field
         # for example, int a,b; returns a.
+        self.decl_type = self.child_by_field_name('type')
         self.declarator = []
         for _c in self.children:
             if _c.type in [
@@ -525,6 +526,18 @@ class DeclarationNode(BasicNode):
                     'init_declarator'
             ]:
                 self.declarator.append(_c)
+
+    def declared_identifiers(self) -> list:
+        ids = []
+        for _decl in self.declarator:
+            unpack_type = [
+                'pointer_declarator', 'array_declarator', 'init_declarator'
+            ]
+            while _decl.type in unpack_type:
+                _decl = _decl.child_by_field_name('declarator')
+            assert (_decl.type == 'identifier')
+            ids.append(_decl)
+        return ids
 
 
 class ParenthesizedExpressionNode(BasicNode):
