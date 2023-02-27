@@ -368,6 +368,7 @@ class BasicNode(Util):
             'enumerator_list': EnumeratorListNode,
             'enumerator': EnumeratorNode,
             'parameter_declaration': ParameterDeclarationNode,
+            'variadic_parameter': VariadicParameterNode,
         }
         init_func = wrapper_dict[
             ts_node.type] if ts_node.type in wrapper_dict.keys() else BasicNode
@@ -770,3 +771,9 @@ class ParameterDeclarationNode(BasicNode):
                 break
             else:
                 assert (False)
+
+
+class VariadicParameterNode(BasicNode):
+
+    def __init__(self, src: str, ts_node=None) -> None:
+        super().__init__(src, ts_node)
