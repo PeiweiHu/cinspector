@@ -1,6 +1,5 @@
 import sys
 
-sys.path.append('..')
 from cinspector.interfaces import CCode
 from cinspector.nodes import ParenthesizedExpressionNode
 

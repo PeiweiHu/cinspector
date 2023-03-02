@@ -10,7 +10,7 @@ class Util():
     def get_parser(self):
         abs_path = os.path.abspath(__file__)
         dire = os.path.dirname(abs_path)
-        C_LANGUAGE = Language(f'{dire}/tree-sitter.so', 'c')
+        C_LANGUAGE = Language(f'{dire}/cinspector-tree-sitter.so', 'c')
         parser = Parser()
         parser.set_language(C_LANGUAGE)
         return parser
