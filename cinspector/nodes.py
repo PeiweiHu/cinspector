@@ -610,6 +610,11 @@ class CallExpressionNode(BasicNode):
             _a for _a in self.arguments if _a.src not in ['(', ')']
         ]
 
+    def is_indirect(self) -> bool:
+        """ whether the invocation is the indirect call
+        """
+        return not isinstance(self.function, IdentifierNode)
+
 
 class ExpressionStatementNode(BasicNode):
 

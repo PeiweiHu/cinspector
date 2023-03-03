@@ -33,6 +33,7 @@ setup(name='cinspector',
       url='https://github.com/PeiweiHu/cinspector',
       install_requires=[
           'tree-sitter',
+          'networkx',
       ],
       tests_require=[
           'pytest',
