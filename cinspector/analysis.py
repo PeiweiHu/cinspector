@@ -3,7 +3,7 @@
 """
 
 from typing import Iterable
-from networkx import DiGraph
+from networkx import DiGraph  # type: ignore
 from .nodes import FunctionDefinitionNode, CallExpressionNode, VariadicParameterNode
 
 

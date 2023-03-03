@@ -2,6 +2,7 @@
 Make a wrapper of tree-sitter node
 """
 import os
+from typing import List, Optional, Dict
 from tree_sitter import Language, Parser
 
 
@@ -316,12 +317,12 @@ class BasicNode(Util):
         # return f'({self.__hash__}){self.src}'
         return self.src
 
-    def equal(self, __o: object) -> bool:
+    def equal(self, __o) -> bool:
         is_node = isinstance(__o, BasicNode)
         internal_src_eq = (self.internal_src == __o.internal_src)
-        position_eq = (self.ts_node.start_point == __o.ts_node.start_point)
-        position_eq = position_eq and (self.ts_node.end_point
-                                       == __o.ts_node.end_point)
+        position_eq = (self.internal.start_point == __o.internal.start_point)
+        position_eq = position_eq and (self.internal.end_point
+                                       == __o.internal.end_point)
         return is_node and internal_src_eq and position_eq
 
     @property
@@ -667,8 +668,8 @@ class EnumSpecifierNode(BasicNode):
         super().__init__(src, ts_node)
         self.name = self.child_by_field_name('name')
         # inner property
-        self._body = self.child_by_field_name('body')
-        self.kv = self._body.kv
+        self._body: EnumeratorListNode = self.child_by_field_name('body')
+        self.kv: dict = self._body.kv
 
     def unsolved_value(self):
         """
@@ -702,7 +703,7 @@ class EnumSpecifierNode(BasicNode):
         dict like {A1: 1, A2: 2}.
         """
 
-        def solve(val):
+        def solve(val) -> Optional[int]:
             # the types of the values of the output dic are int and None
             if isinstance(val, NumberLiteralNode):
                 return int(str(val))
@@ -713,7 +714,7 @@ class EnumSpecifierNode(BasicNode):
 
         # 1. conclude the value of each item
         # 1.1 sort the items
-        k_lst = []
+        k_lst: List[BasicNode] = []
         for _k in self.kv.keys():
             if not k_lst:
                 k_lst.append(_k)
@@ -730,7 +731,7 @@ class EnumSpecifierNode(BasicNode):
             k_lst.insert(insert_idx, _k)
 
         # 1.2 conclude the value
-        dic = dict()
+        dic: Dict[BasicNode, Optional[int]] = dict()
         for _id, _k in enumerate(k_lst):
             _v = self.kv[_k]
             if _id == 0 and _v is None:

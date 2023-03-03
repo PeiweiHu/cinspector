@@ -13,14 +13,15 @@ represent source code, such as CFile.
 
 import os
 from collections import defaultdict
-from .nodes import BasicNode
+from typing import List, Any
+from .nodes import BasicNode, FunctionDefinitionNode
 
 
 class CProj:
 
     def __init__(self, proj_path: str) -> None:
         self.proj_path = proj_path
-        self.funcs = []
+        self.funcs: List[FunctionDefinitionNode] = []
 
     def count_file(self, ext):
         if type(ext) == str:
@@ -80,8 +81,8 @@ class CCode:
         self.src = src
         self.node = BasicNode(self.src)
         # the following attributes maintain specific semantic elements
-        self.func_lst = None
-        self.enum_lst = None
+        self.func_lst: Any = None
+        self.enum_lst: Any = None
 
     def get_by_type_name(self, type_name) -> list:
         return self.node.children_by_type_name(type_name)
