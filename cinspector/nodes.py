@@ -369,6 +369,7 @@ class BasicNode(Util):
             'enumerator': EnumeratorNode,
             'parameter_declaration': ParameterDeclarationNode,
             'variadic_parameter': VariadicParameterNode,
+            'compound_statement': CompoundStatementNode,
         }
         init_func = wrapper_dict[
             ts_node.type] if ts_node.type in wrapper_dict.keys() else BasicNode
@@ -790,3 +791,20 @@ class VariadicParameterNode(BasicNode):
 
     def __init__(self, src: str, ts_node=None) -> None:
         super().__init__(src, ts_node)
+
+
+class CompoundStatementNode(BasicNode):
+    """ The wrapper of tree-sitter node 'compound_statement'.
+
+    CompoundStatementNode is a collection of nodes. For
+    example, it is used to represent the body of the function
+    and loop node.
+
+    Attributes:
+        statements (list): the nodes contained in compound statement
+
+    """
+
+    def __init__(self, src: str, ts_node=None) -> None:
+        super().__init__(src, ts_node)
+        self.statements = self.children

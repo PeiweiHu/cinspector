@@ -1,3 +1,16 @@
+""" Interfaces for users
+
+This file defines several interfaces to ease the
+use of cinspector.
+
+In particular, CProj is the interface for the whole
+C-based project, which usually contains some directories
+including header and source files.
+
+CCode is the base interface for any interfaces that
+represent source code, such as CFile.
+"""
+
 import os
 from collections import defaultdict
 from .nodes import BasicNode
