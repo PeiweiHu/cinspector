@@ -1,5 +1,5 @@
-""" Program analysis techniques
-
+"""
+Call Graph
 """
 
 from typing import Iterable
