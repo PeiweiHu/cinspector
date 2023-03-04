@@ -50,7 +50,25 @@ class Util():
         return self.get_raw(s, node.start_point, node.end_point)
 
 
-class AbstractNode():
+class Node():
+    """ The root calss of all nodes
+
+    In general, there are three types of nodes. Node is
+    the root class of all nodes while both AbstractNode
+    and BasicNode are the direct children of Node.
+
+    AbstractNode represents the logical node in the source code.
+    It does not correspond to a exactly same element in the source code.
+    We design AbstractNode mainly for the needs of program analysis.
+
+    BasicNode is the base class of a series of nodes that
+    correspond to the actually existing elements in the source
+    code.
+    """
+    pass
+
+
+class AbstractNode(Node):
     """
     AbstractNode is the base class of abstract node classes.
     The so-called abstract node is the node that exists for the convenience
@@ -274,7 +292,7 @@ class SwitchNode(AbstractNode):
         return f'switch {self.condition} case {self.case_value} '
 
 
-class BasicNode(Util):
+class BasicNode(Node, Util):
 
     def __init__(self, src: str, ts_node=None) -> None:
         self.internal_src = src
