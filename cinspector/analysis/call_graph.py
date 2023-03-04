@@ -4,7 +4,7 @@ Call Graph
 
 from typing import Iterable
 from networkx import DiGraph  # type: ignore
-from cinspector.nodes import FunctionDefinitionNode, CallExpressionNode, VariadicParameterNode
+from cinspector.node import FunctionDefinitionNode, CallExpressionNode, VariadicParameterNode
 
 
 class CallGraph:

@@ -1,7 +1,5 @@
-import sys
-
 from cinspector.interfaces import CCode
-from cinspector.nodes import CompoundStatementNode, DeclarationNode, IfStatementNode
+from cinspector.node import CompoundStatementNode, DeclarationNode, IfStatementNode
 
 SRC = """
 int func() {

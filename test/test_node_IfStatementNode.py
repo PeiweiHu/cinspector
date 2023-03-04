@@ -1,7 +1,5 @@
-import sys
-
 from cinspector.interfaces import CCode
-from cinspector.nodes import IfStatementNode
+from cinspector.node import IfStatementNode
 
 SRC = """
 int a = 10, b = 20;

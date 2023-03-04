@@ -1,7 +1,5 @@
-import sys
-
 from cinspector.interfaces import CCode
-from cinspector.nodes import ParenthesizedExpressionNode
+from cinspector.node import ParenthesizedExpressionNode
 
 SRC = """
 int a = 10, b = 20;
