@@ -1,4 +1,5 @@
-from typing import List, Optional, Dict
+from functools import cmp_to_key
+from typing import List, Optional, Dict, Iterable
 from .node import Node, Util
 
 
@@ -62,6 +63,30 @@ class BasicNode(Node, Util):
     def in_front(self, node):
         return self.start_point[0] < node.start_point[0] or \
             (self.start_point[0] == node.start_point[0] and self.start_point[1] < node.start_point[1])
+
+    @staticmethod
+    def sort_nodes(nodes: Iterable, reverse: bool = False) -> Iterable:
+        """ Sort the instances of BasicNode by their position in source code
+
+        Args:
+            nodes (Iterable): nodes waiting for sorting
+            reverse (bool=False): use descending instead of ascending
+
+        Return:
+            sorted Iterable object
+        """
+
+        def cmp_position(node1: BasicNode, node2: BasicNode) -> int:
+            if node1.start_point[0] < node2.start_point[0] or \
+                    (node1.start_point[0] == node2.start_point[0] and node1.start_point[1] < node2.start_point[1]):
+                return -1
+            else:
+                return 1
+
+        sorted_nodes = sorted(nodes,
+                              key=cmp_to_key(cmp_position),
+                              reverse=reverse)
+        return sorted_nodes
 
     def make_wrapper(self, ts_node):
         if not ts_node:
@@ -257,7 +282,7 @@ class DeclarationNode(BasicNode):
             ]:
                 self.declarator.append(_c)
 
-    def declared_identifiers(self) -> list:
+    def declared_identifiers(self) -> List[IdentifierNode]:
         ids = []
         for _decl in self.declarator:
             unpack_type = [
