@@ -1,5 +1,5 @@
 from cinspector.interfaces import CCode
-from cinspector.node import BasicNode
+from cinspector.nodes import BasicNode
 
 SRC = """
     int a, b, c = 1;

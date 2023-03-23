@@ -1,5 +1,5 @@
 from cinspector.interfaces import CCode
-from cinspector.node import ParameterDeclarationNode, IdentifierNode
+from cinspector.nodes import ParameterDeclarationNode, IdentifierNode
 
 SRC = """
 int func(int a, struct st ins, struct st **ins_pointer, struct st *ins_pointer_arr[]) {

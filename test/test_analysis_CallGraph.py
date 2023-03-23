@@ -1,6 +1,6 @@
 from cinspector.interfaces import CCode
 from cinspector.analysis import CallGraph
-from cinspector.node import CompoundStatementNode, DeclarationNode, IfStatementNode
+from cinspector.nodes import CompoundStatementNode, DeclarationNode, IfStatementNode
 
 SRC = """
 void a(int p) {

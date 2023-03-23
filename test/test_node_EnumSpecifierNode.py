@@ -1,5 +1,5 @@
 from cinspector.interfaces import CCode
-from cinspector.node import EnumSpecifierNode, IdentifierNode, NumberLiteralNode
+from cinspector.nodes import EnumSpecifierNode, IdentifierNode, NumberLiteralNode
 
 SRC = """
 #include "stdio.h"

@@ -14,7 +14,7 @@ represent source code, such as CFile.
 import os
 from collections import defaultdict
 from typing import List, Any
-from .node import BasicNode, FunctionDefinitionNode
+from .nodes import BasicNode, FunctionDefinitionNode
 
 
 class CProj:

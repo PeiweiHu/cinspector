@@ -4,11 +4,11 @@ Control Flow Graph-related analysis
 from networkx import DiGraph  # type: ignore
 import networkx as nx  # type: ignore
 from typing import Optional, Dict, Union, List
-from cinspector.node import Util, BorderNode, Node
-from cinspector.node import ForStatementNode, YForLoopNode, NForLoopNode
-from cinspector.node import WhileStatementNode, YWhileLoopNode, NWhileLoopNode
-from cinspector.node import IfStatementNode, YConditionNode, NConditionNode
-from cinspector.node import SwitchNode, FunctionDefinitionNode
+from cinspector.nodes import Util, BorderNode, Node
+from cinspector.nodes import ForStatementNode, YForLoopNode, NForLoopNode
+from cinspector.nodes import WhileStatementNode, YWhileLoopNode, NWhileLoopNode
+from cinspector.nodes import IfStatementNode, YConditionNode, NConditionNode
+from cinspector.nodes import SwitchNode, FunctionDefinitionNode
 
 
 class BasicBlock(Util):

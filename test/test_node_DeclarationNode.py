@@ -1,5 +1,5 @@
 from cinspector.interfaces import CCode
-from cinspector.node import IdentifierNode, DeclarationNode, FunctionDefinitionNode
+from cinspector.nodes import IdentifierNode, DeclarationNode, FunctionDefinitionNode
 
 SRC = """
 void funcA() {

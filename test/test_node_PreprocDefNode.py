@@ -1,5 +1,5 @@
 from cinspector.interfaces import CCode
-from cinspector.node import PreprocDefNode, IdentifierNode, PreprocArgNode
+from cinspector.nodes import PreprocDefNode, IdentifierNode, PreprocArgNode
 
 SRC = """
 
