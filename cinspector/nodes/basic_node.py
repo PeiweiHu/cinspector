@@ -443,7 +443,7 @@ class ParameterDeclarationNode(BasicNode):
                 declarator = declarator.child_by_field_name('declarator')
             # int func(int (*a)())
             elif declarator.type == 'parenthesized_declarator':
-                declarator = declarator.children[1]
+                declarator = declarator.children[0]
             # int func(int a[])
             elif declarator.type == 'array_declarator':
                 declarator = declarator.child_by_field_name('declarator')
@@ -516,7 +516,7 @@ class FunctionDefinitionNode(BasicNode):
                 last_function_declarator = declarator
                 declarator = declarator.child_by_field_name('declarator')
             elif declarator.type == 'parenthesized_declarator':
-                declarator = declarator.children[1]
+                declarator = declarator.children[0]
             elif declarator.type == 'pointer_declarator':
                 declarator = declarator.child_by_field_name('declarator')
             elif declarator.type == 'identifier':
@@ -531,7 +531,7 @@ class FunctionDefinitionNode(BasicNode):
         conclude the name of the function
         """
 
-        return self.__get_nest_function_declarator().child_by_field_name('identifier')
+        return self.__get_nest_function_declarator().child_by_field_name('declarator')
 
     @property
     def parameters(self) -> Optional[ParameterListNode]:
