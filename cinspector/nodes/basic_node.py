@@ -441,9 +441,7 @@ class FunctionDefinitionNode(BasicNode):
         self.parameters = [
             _p for _p in self.parameters if _p.src not in ['(', ')']
         ]
-        storage_class_specifiers = [
-            _.src for _ in self.child_by_field_name('storage_class_specifier')
-        ]
+        storage_class_specifiers = [_.src for _ in self.children]
         self.static = True if 'static' in storage_class_specifiers else False
         self.inline = True if 'inline' in storage_class_specifiers else False
 
