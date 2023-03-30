@@ -404,14 +404,9 @@ class FunctionDefinitionNode(BasicNode):
     """Wrapper class of the function_definition node in tree-sitter
 
     Attributes:
-
-        the following three attributes are direct wrapper of
-        function_definition in tree-sitter
-
         type (TypeNode): the type of the function
         declarator ():
         body (CompoundStatementNode): the body of the function
-
         name (IdentifierNode): the name of the function
         parameters (List[ParameterDeclarationNode]): the parameters of the function
         body (CompoundStatementNode): the body of the function
@@ -625,16 +620,12 @@ class ParameterDeclarationNode(BasicNode):
     """ The wrapper of the parameter_declaration node in tree-sitter.
 
     Attributes:
-        type (TypeNode): the type of the parameter
+        type (TypeNode): the type of the parameter.
         declarator (Optional[BasicNode]): the declarator of the parameter,
             this can be None, e.g. int func(void), or the declaration
-            int func(int);
-
+            int func(int).
         name (Optional[IdentifierNode]): the name of the declared parameter,
-            this can be None
-        type_qualifier (Optional[TypeQualifierNode]): the type qualifier
-        storage_class_specifier (Optional[StorageClassSpecifierNode]): the
-            storage class specifier
+            this can be None.
     """
 
     def __init__(self, src: str, ts_node=None) -> None:
