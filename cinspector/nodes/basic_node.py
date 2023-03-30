@@ -387,17 +387,98 @@ class IfStatementNode(BasicNode):
         return self.condition_abs.entry_constraints()
 
 
-class FunctionDeclaratorNode(BasicNode):
-    """ wrapper of the function_declarator node in tree-sitter
+class ParameterDeclarationNode(BasicNode):
+    """ The wrapper of the parameter_declaration node in tree-sitter.
 
     Attributes:
-        declarator (): declarator
-        parameters (): parameters
+        type (TypeNode): the type of the parameter.
+        declarator (Optional[BasicNode]): the declarator of the parameter,
+            this can be None, e.g. int func(void), or the declaration
+            int func(int).
     """
 
     def __init__(self, src: str, ts_node=None) -> None:
         super().__init__(src, ts_node)
-        self.parameters = self.child_by_field_name('parameters')
+
+        # fields of the tree-sitter node
+        self.type = self.child_by_field_name('type')
+        self.declarator = self.child_by_field_name('declarator')
+
+    @property
+    def type_qualifier(self) -> Optional[TypeQualifierNode]:
+        """
+        get the type qualifier of the parameter
+        """
+        for _c in self.children:
+            if isinstance(_c, TypeQualifierNode):
+                return _c
+        return None
+
+    @property
+    def storage_class_specifier(self) -> Optional[StorageClassSpecifierNode]:
+        """
+        get the storage class specifier of the parameter
+        """
+        for _c in self.children:
+            if isinstance(_c, StorageClassSpecifierNode):
+                return _c
+        return None
+
+    @property
+    def name(self) -> Optional[IdentifierNode]:
+        """
+        try to analyse the name of the parameter
+        """
+        declarator = self.declarator
+        # self.declarator maybe None, e.g. int func(void)
+        while True and declarator:
+            # int func(int *a)
+            if declarator.type == 'pointer_declarator':
+                declarator = declarator.child_by_field_name('declarator')
+            # mainly in declaration such as int func(int *)
+            elif declarator.type == 'abstract_pointer_declarator':
+                return None
+            # int func(int (*a)())
+            elif declarator.type == 'function_declarator':
+                declarator = declarator.child_by_field_name('declarator')
+            # int func(int (*a)())
+            elif declarator.type == 'parenthesized_declarator':
+                declarator = declarator.children[1]
+            # int func(int a[])
+            elif declarator.type == 'array_declarator':
+                declarator = declarator.child_by_field_name('declarator')
+            # int func(int a)
+            elif declarator.type == 'identifier':
+                return declarator
+            else:
+                assert (False)
+        return None
+
+
+class ParameterListNode(BasicNode):
+    """ The wrapper of the parameter_list node in tree-sitter.
+
+    ParameterListNode is a collection of ParameterDeclarationNode.
+    You can visit the children of ParameterListNode by the attributes
+    <children>.
+    """
+
+    def __init__(self, src: str, ts_node=None) -> None:
+        super().__init__(src, ts_node)
+
+
+class FunctionDeclaratorNode(BasicNode):
+    """ wrapper of the function_declarator node in tree-sitter
+
+    Attributes:
+        declarator (BasicNode): declarator
+        parameters (ParameterListNode): parameters
+    """
+
+    def __init__(self, src: str, ts_node=None) -> None:
+        super().__init__(src, ts_node)
+        self.declarator: BasicNode = self.child_by_field_name('declarator')
+        self.parameters: ParameterListNode = self.child_by_field_name('parameters')
 
 
 class FunctionDefinitionNode(BasicNode):
@@ -405,11 +486,11 @@ class FunctionDefinitionNode(BasicNode):
 
     Attributes:
         type (TypeNode): the type of the function
-        declarator ():
+        declarator (FunctionDeclaratorNode): the declarator of the function
         body (CompoundStatementNode): the body of the function
+
         name (IdentifierNode): the name of the function
         parameters (List[ParameterDeclarationNode]): the parameters of the function
-        body (CompoundStatementNode): the body of the function
         static (bool): whether the function is static
         inline (bool): whether the function is inline
 
@@ -419,27 +500,68 @@ class FunctionDefinitionNode(BasicNode):
     def __init__(self, src: str, ts_node=None) -> None:
         super().__init__(src, ts_node)
         self.type: TypeNode = self.child_by_field_name('type')
+        self.declarator: FunctionDeclaratorNode = self.child_by_field_name('declarator')
         self.body: CompoundStatementNode = self.child_by_field_name('body')
-        function_declarator = self.child_by_field_name('declarator')
-        while function_declarator.type == 'pointer_declarator':
-            assert (isinstance(self.type, TypeNode))
-            self.type.pointer_level += 1
-            function_declarator = function_declarator.child_by_field_name(
-                'declarator')
-        self.name: IdentifierNode = function_declarator.child_by_field_name(
-            'declarator')
-        parameter_list = function_declarator.child_by_field_name('parameters')
-        self.parameters: List[
-            ParameterDeclarationNode] = parameter_list.children if parameter_list else list(
-            )
-        # filter out bracket
-        self.parameters = [
-            _p for _p in self.parameters if _p.src not in ['(', ')']
-        ]
-        storage_class_specifiers = [_.src for _ in self.children]
-        self.static = True if 'static' in storage_class_specifiers else False
-        self.inline = True if 'inline' in storage_class_specifiers else False
 
+    def __get_nest_function_declarator(self) -> FunctionDeclaratorNode:
+        """
+        function_declarator may be nested, e.g. int (*func(int a))(int b).
+        This function find the innermost one, i.e., func(int a).
+        """
+        declarator = self.declarator
+        last_function_declarator = declarator
+        # try to find out the nest function_declarator
+        while True:
+            if declarator.type == 'function_declarator':
+                last_function_declarator = declarator
+                declarator = declarator.child_by_field_name('declarator')
+            elif declarator.type == 'parenthesized_declarator':
+                declarator = declarator.children[1]
+            elif declarator.type == 'pointer_declarator':
+                declarator = declarator.child_by_field_name('declarator')
+            elif declarator.type == 'identifier':
+                break
+            else:
+                assert(0)
+        return last_function_declarator
+
+    @property
+    def name(self) -> Optional[IdentifierNode]:
+        """
+        conclude the name of the function
+        """
+
+        return self.__get_nest_function_declarator().child_by_field_name('identifier')
+
+    @property
+    def parameters(self) -> Optional[ParameterListNode]:
+        """ conclude the parameters of the function
+
+        The node function_declarator in tree-sitter has two fields:
+        declarator and parameters. However, the field parameters is
+        not strictly the real parameters of the current function.
+        For example, for the function `int (*bar(int a))(int)`, the
+        field parameters of the function_declarator `(*bar(int a))(int)`
+        is `(int)`, while `int a` is the real parameter of the function.
+        """
+
+        return self.__get_nest_function_declarator().child_by_field_name('parameters')
+
+    @property
+    def static(self) -> bool:
+        """
+        Whether the function is static
+        """
+        storage_class_specifiers = [_.src for _ in self.children]
+        return True if 'static' in storage_class_specifiers else False
+
+    @property
+    def inline(self) -> bool:
+        """
+        Whether the function is inline
+        """
+        storage_class_specifiers = [_.src for _ in self.children]
+        return True if 'inline' in storage_class_specifiers else False
 
 class SubscriptExpressionNode(BasicNode):
 
@@ -614,90 +736,6 @@ class EnumeratorNode(BasicNode):
         super().__init__(src, ts_node)
         self.name = self.child_by_field_name('name')
         self.value = self.child_by_field_name('value')
-
-
-class ParameterDeclarationNode(BasicNode):
-    """ The wrapper of the parameter_declaration node in tree-sitter.
-
-    Attributes:
-        type (TypeNode): the type of the parameter.
-        declarator (Optional[BasicNode]): the declarator of the parameter,
-            this can be None, e.g. int func(void), or the declaration
-            int func(int).
-        name (Optional[IdentifierNode]): the name of the declared parameter,
-            this can be None.
-    """
-
-    def __init__(self, src: str, ts_node=None) -> None:
-        super().__init__(src, ts_node)
-
-        # fields of the tree-sitter node
-        self.type = self.child_by_field_name('type')
-        self.declarator = self.child_by_field_name('declarator')
-
-        # additional attributes
-        self.name: Optional[IdentifierNode] = self.__analyse_name()
-
-    @property
-    def type_qualifier(self) -> Optional[TypeQualifierNode]:
-        """
-        get the type qualifier of the parameter
-        """
-        for _c in self.children:
-            if isinstance(_c, TypeQualifierNode):
-                return _c
-        return None
-
-    @property
-    def storage_class_specifier(self) -> Optional[StorageClassSpecifierNode]:
-        """
-        get the storage class specifier of the parameter
-        """
-        for _c in self.children:
-            if isinstance(_c, StorageClassSpecifierNode):
-                return _c
-        return None
-
-    def __analyse_name(self) -> Optional[IdentifierNode]:
-        """
-        try to analyse the name of the parameter
-        """
-        declarator = self.declarator
-        # self.declarator maybe None, e.g. int func(void)
-        while True and declarator:
-            # int func(int *a)
-            if declarator.type == 'pointer_declarator':
-                declarator = declarator.child_by_field_name('declarator')
-            # mainly in declaration such as int func(int *)
-            elif declarator.type == 'abstract_pointer_declarator':
-                return None
-            # int func(int (*a)())
-            elif declarator.type == 'function_declarator':
-                declarator = declarator.child_by_field_name('declarator')
-            # int func(int (*a)())
-            elif declarator.type == 'parenthesized_declarator':
-                declarator = declarator.child_by_field_name('declarator')
-            # int func(int a[])
-            elif declarator.type == 'array_declarator':
-                declarator = declarator.child_by_field_name('declarator')
-            # int func(int a)
-            elif declarator.type == 'identifier':
-                return declarator
-            else:
-                assert (False)
-        return None
-
-
-class ParameterListNode(BasicNode):
-    """ The wrapper of the parameter_list node in tree-sitter.
-
-    ParameterListNode is a collection of ParameterDeclarationNode.
-    You can visit the children of ParameterListNode by the attributes
-    <children>.
-    """
-
-    def __init__(self, src: str, ts_node=None) -> None:
-        super().__init__(src, ts_node)
 
 
 class VariadicParameterNode(BasicNode):
