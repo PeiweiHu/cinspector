@@ -1,3 +1,27 @@
+"""
+This file contains wrapper classes of tree-sitter nodes. In general,
+the wrapper classes are designed following the following rules:
+
+1. Naming Convention. The class is named based on the type of tree-sitter
+node. For example, the wrapper class of tree-sitter node 'function_definition'
+is named FunctionDefinitionNode.
+
+2. Attributes. The attributes within each class can by divided into two
+groups. The first group corresponds to the fields of tree-sitter node. For
+example, the node of 'function_definition' type in tree-sitter has the
+fields 'type', 'declarator', and 'body'. The wrapper class of
+'function_definition' FunctionDefinitionNode will also contain the
+attributes 'type', 'declarator', and 'body'. The second group of attributes
+is added by cinspector to facilitate the analysis of source code. We call them
+additional attributes.
+
+3. Property representation. The properties of the node classes in this file,
+i.e., classes inheriting from BasicNode, should be represented by BasicNode
+instances as much as possible. For example, the property 'name' of the class
+ParameterDeclarationNode is an instance of IdentifierNode instead of str. Of
+course, the user can also get the str format by invoking the method src().
+"""
+
 from functools import cmp_to_key
 from typing import List, Optional, Dict, Iterable
 from .node import Node, Util
@@ -122,8 +146,12 @@ class BasicNode(Node, Util):
             'enumerator_list': EnumeratorListNode,
             'enumerator': EnumeratorNode,
             'parameter_declaration': ParameterDeclarationNode,
+            'parameter_list': ParameterListNode,
             'variadic_parameter': VariadicParameterNode,
             'compound_statement': CompoundStatementNode,
+            'function_declarator': FunctionDeclaratorNode,
+            'type_qualifier': TypeQualifierNode,
+            'storage_class_specifier': StorageClassSpecifierNode,
         }
         init_func = wrapper_dict[
             ts_node.type] if ts_node.type in wrapper_dict.keys() else BasicNode
@@ -149,6 +177,10 @@ class BasicNode(Node, Util):
 
 # currently only add commonly used type
 class TypeNode(BasicNode):
+    """
+    TODO: remove the pointer_level and array_level, use analysis
+    module to conclude the related property.
+    """
 
     def __init__(self, src: str, ts_node=None) -> None:
         super().__init__(src, ts_node)
@@ -160,6 +192,37 @@ class TypeNode(BasicNode):
 
     def is_array(self):
         return self.array_level != 0
+
+
+class TypeQualifierNode(BasicNode):
+    """ Wrapper for type qualifier node in tree-sitter
+
+    A type qualifier is a keyword that is applied to a type,
+    resulting in a qualified type.
+
+    As of 2014 and C11, there are four type qualifiers in
+    standard C: const (C89), volatile (C89), restrict (C99)
+    and _Atomic (C11)
+    """
+
+    def __init__(self, src: str, ts_node=None) -> None:
+        super().__init__(src, ts_node)
+
+
+class StorageClassSpecifierNode(BasicNode):
+    """ Wrapper for storage class specifier node in tree-sitter
+
+    Every variable has two properties in C language that are: data
+    type (int, char, float, etc.) and storage class. The Storage
+    Class of a variable decides its scope, lifetime, storage location,
+    and default value.
+
+    There are four storage classes in C language: auto, extern,
+    static, and register.
+    """
+
+    def __init__(self, src: str, ts_node=None) -> None:
+        super().__init__(src, ts_node)
 
 
 class WhileStatementNode(BasicNode):
@@ -324,25 +387,65 @@ class IfStatementNode(BasicNode):
         return self.condition_abs.entry_constraints()
 
 
-class FunctionDefinitionNode(BasicNode):
+class FunctionDeclaratorNode(BasicNode):
+    """ wrapper of the function_declarator node in tree-sitter
+
+    Attributes:
+        declarator (): declarator
+        parameters (): parameters
+    """
 
     def __init__(self, src: str, ts_node=None) -> None:
         super().__init__(src, ts_node)
-        self.type = self.child_by_field_name('type')
-        self.body = self.child_by_field_name('body')
+        self.parameters = self.child_by_field_name('parameters')
+
+
+class FunctionDefinitionNode(BasicNode):
+    """Wrapper class of the function_definition node in tree-sitter
+
+    Attributes:
+
+        the following three attributes are direct wrapper of
+        function_definition in tree-sitter
+
+        type (TypeNode): the type of the function
+        declarator ():
+        body (CompoundStatementNode): the body of the function
+
+        name (IdentifierNode): the name of the function
+        parameters (List[ParameterDeclarationNode]): the parameters of the function
+        body (CompoundStatementNode): the body of the function
+        static (bool): whether the function is static
+        inline (bool): whether the function is inline
+
+    TODO: name may be None under some cases
+    """
+
+    def __init__(self, src: str, ts_node=None) -> None:
+        super().__init__(src, ts_node)
+        self.type: TypeNode = self.child_by_field_name('type')
+        self.body: CompoundStatementNode = self.child_by_field_name('body')
         function_declarator = self.child_by_field_name('declarator')
         while function_declarator.type == 'pointer_declarator':
             assert (isinstance(self.type, TypeNode))
             self.type.pointer_level += 1
             function_declarator = function_declarator.child_by_field_name(
                 'declarator')
-        self.name = function_declarator.child_by_field_name('declarator')
+        self.name: IdentifierNode = function_declarator.child_by_field_name(
+            'declarator')
         parameter_list = function_declarator.child_by_field_name('parameters')
-        self.parameters = parameter_list.children if parameter_list else list()
+        self.parameters: List[
+            ParameterDeclarationNode] = parameter_list.children if parameter_list else list(
+            )
         # filter out bracket
         self.parameters = [
             _p for _p in self.parameters if _p.src not in ['(', ')']
         ]
+        storage_class_specifiers = [
+            _.src for _ in self.child_by_field_name('storage_class_specifier')
+        ]
+        self.static = True if 'static' in storage_class_specifiers else False
+        self.inline = True if 'inline' in storage_class_specifiers else False
 
 
 class SubscriptExpressionNode(BasicNode):
@@ -521,30 +624,91 @@ class EnumeratorNode(BasicNode):
 
 
 class ParameterDeclarationNode(BasicNode):
+    """ The wrapper of the parameter_declaration node in tree-sitter.
+
+    Attributes:
+        type (TypeNode): the type of the parameter
+        declarator (Optional[BasicNode]): the declarator of the parameter,
+            this can be None, e.g. int func(void), or the declaration
+            int func(int);
+
+        name (Optional[IdentifierNode]): the name of the declared parameter,
+            this can be None
+        type_qualifier (Optional[TypeQualifierNode]): the type qualifier
+        storage_class_specifier (Optional[StorageClassSpecifierNode]): the
+            storage class specifier
+    """
 
     def __init__(self, src: str, ts_node=None) -> None:
         super().__init__(src, ts_node)
+
+        # fields of the tree-sitter node
         self.type = self.child_by_field_name('type')
         self.declarator = self.child_by_field_name('declarator')
-        # unpack the declarator to get the real name
-        self.name = None
-        # TODO: create more specific type node (use TypeNode as the super
-        # class), since some types have additional properties, like
-        # struct_specifier
+
+        # additional attributes
+        self.name: Optional[IdentifierNode] = self.__analyse_name()
+
+    @property
+    def type_qualifier(self) -> Optional[TypeQualifierNode]:
+        """
+        get the type qualifier of the parameter
+        """
+        for _c in self.children:
+            if isinstance(_c, TypeQualifierNode):
+                return _c
+        return None
+
+    @property
+    def storage_class_specifier(self) -> Optional[StorageClassSpecifierNode]:
+        """
+        get the storage class specifier of the parameter
+        """
+        for _c in self.children:
+            if isinstance(_c, StorageClassSpecifierNode):
+                return _c
+        return None
+
+    def __analyse_name(self) -> Optional[IdentifierNode]:
+        """
+        try to analyse the name of the parameter
+        """
         declarator = self.declarator
         # self.declarator maybe None, e.g. int func(void)
         while True and declarator:
+            # int func(int *a)
             if declarator.type == 'pointer_declarator':
                 declarator = declarator.child_by_field_name('declarator')
-                self.type.pointer_level += 1
+            # mainly in declaration such as int func(int *)
+            elif declarator.type == 'abstract_pointer_declarator':
+                return None
+            # int func(int (*a)())
+            elif declarator.type == 'function_declarator':
+                declarator = declarator.child_by_field_name('declarator')
+            # int func(int (*a)())
+            elif declarator.type == 'parenthesized_declarator':
+                declarator = declarator.child_by_field_name('declarator')
+            # int func(int a[])
             elif declarator.type == 'array_declarator':
                 declarator = declarator.child_by_field_name('declarator')
-                self.type.array_level += 1
+            # int func(int a)
             elif declarator.type == 'identifier':
-                self.name = declarator
-                break
+                return declarator
             else:
                 assert (False)
+        return None
+
+
+class ParameterListNode(BasicNode):
+    """ The wrapper of the parameter_list node in tree-sitter.
+
+    ParameterListNode is a collection of ParameterDeclarationNode.
+    You can visit the children of ParameterListNode by the attributes
+    <children>.
+    """
+
+    def __init__(self, src: str, ts_node=None) -> None:
+        super().__init__(src, ts_node)
 
 
 class VariadicParameterNode(BasicNode):
