@@ -44,7 +44,7 @@ class CallGraph:
         call_para_num = len(call.arguments)
         fixed_para_num = 0
         variadic_para = False
-        for _a in func.parameters:
+        for _a in func.parameters.children:
             if isinstance(_a, VariadicParameterNode):
                 variadic_para = True
             else:

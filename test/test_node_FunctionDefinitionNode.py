@@ -1,8 +1,8 @@
 from cinspector.interfaces import CCode
-from cinspector.nodes import ParameterDeclarationNode, IdentifierNode, TypeQualifierNode, StorageClassSpecifierNode
+from cinspector.nodes import FunctionDefinitionNode, ParameterListNode, IdentifierNode
 
 SRC = """
-int func(int a, struct st ins, struct st **ins_pointer, struct st *ins_pointer_arr[]) {
+static inline int func(int a, struct st ins, struct st **ins_pointer, struct st *ins_pointer_arr[]) {
     return 0;
 }
 
@@ -16,13 +16,21 @@ int (*bar(int (*cmp)(void *)))(int) {
 """
 
 
-class TestParameterDeclarationNode:
+class TestFunctionDefinitionNode:
 
     def test_func(self):
         cc = CCode(SRC)
         func = cc.get_by_type_name('function_definition')
+
+        # test the property name
         func = [_ for _ in func if _.name.src == 'func'][0]
-        para_decl_lst = func.children_by_type_name('parameter_declaration')
+        assert (isinstance(func, FunctionDefinitionNode))
+        # test the property inline and static
+        assert (func.inline and func.static)
+        # test the property parameters
+        func_parameters = func.parameters
+        assert (isinstance(func_parameters, ParameterListNode))
+        para_decl_lst = func_parameters.children
         # number of the parameter
         assert (len(para_decl_lst) == 4)
 
@@ -53,33 +61,20 @@ class TestParameterDeclarationNode:
     def test_foo(self):
         cc = CCode(SRC)
         foo = cc.get_by_type_name('function_definition')
+        # test the property name
         foo = [_ for _ in foo if _.name.src == 'foo'][0]
-
+        # test the property parameters
         # int (*func_pointer)(const static int *)
-        para_decl1 = foo.child_by_field_name('declarator').child_by_field_name(
-            'parameters').children[0]
+        para_decl1 = foo.parameters.children[0]
         assert (para_decl1.name.src == 'func_pointer')
-
-        # const static int *
-        para_decl2 = para_decl1.child_by_field_name(
-            'declarator').child_by_field_name('parameters').children[0]
-        assert (para_decl2.name is None)
-        assert (para_decl2.type_qualifier[0].src == 'const')
-        assert (para_decl2.storage_class_specifier[0].src == 'static')
+        assert (para_decl1.src == 'int (*func_pointer)(const static int *)')
 
     def test_bar(self):
         cc = CCode(SRC)
         bar = cc.get_by_type_name('function_definition')
+        # test the property name
         bar = [_ for _ in bar if _.name.src == 'bar'][0]
 
-        # int (*bar(int (*cmp)(void *)))(int)
-        para_decl_lst = bar.children_by_type_name('parameter_declaration')
-        for _decl in para_decl_lst:
-            if _decl.src == 'int (*cmp)(void *)':
-                assert (_decl.name.src == 'cmp')
-            elif _decl.src == 'void *':
-                assert (_decl.name is None)
-            elif _decl.src == 'int':
-                assert (_decl.name is None)
-            else:
-                assert (0)
+        # int (*cmp)(void *)
+        para_decl = bar.parameters.children[0]
+        assert (para_decl.src == 'int (*cmp)(void *)')

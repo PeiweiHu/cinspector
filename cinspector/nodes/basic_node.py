@@ -405,24 +405,23 @@ class ParameterDeclarationNode(BasicNode):
         self.declarator = self.child_by_field_name('declarator')
 
     @property
-    def type_qualifier(self) -> Optional[TypeQualifierNode]:
+    def type_qualifier(self) -> List[TypeQualifierNode]:
         """
         get the type qualifier of the parameter
         """
-        for _c in self.children:
-            if isinstance(_c, TypeQualifierNode):
-                return _c
-        return None
+
+        return [_c for _c in self.children if isinstance(_c, TypeQualifierNode)]
 
     @property
-    def storage_class_specifier(self) -> Optional[StorageClassSpecifierNode]:
+    def storage_class_specifier(self) -> List[StorageClassSpecifierNode]:
         """
         get the storage class specifier of the parameter
         """
-        for _c in self.children:
-            if isinstance(_c, StorageClassSpecifierNode):
-                return _c
-        return None
+
+        return [
+            _c for _c in self.children
+            if isinstance(_c, StorageClassSpecifierNode)
+        ]
 
     @property
     def name(self) -> Optional[IdentifierNode]:
@@ -478,7 +477,8 @@ class FunctionDeclaratorNode(BasicNode):
     def __init__(self, src: str, ts_node=None) -> None:
         super().__init__(src, ts_node)
         self.declarator: BasicNode = self.child_by_field_name('declarator')
-        self.parameters: ParameterListNode = self.child_by_field_name('parameters')
+        self.parameters: ParameterListNode = self.child_by_field_name(
+            'parameters')
 
 
 class FunctionDefinitionNode(BasicNode):
@@ -489,18 +489,14 @@ class FunctionDefinitionNode(BasicNode):
         declarator (FunctionDeclaratorNode): the declarator of the function
         body (CompoundStatementNode): the body of the function
 
-        name (IdentifierNode): the name of the function
-        parameters (List[ParameterDeclarationNode]): the parameters of the function
-        static (bool): whether the function is static
-        inline (bool): whether the function is inline
-
     TODO: name may be None under some cases
     """
 
     def __init__(self, src: str, ts_node=None) -> None:
         super().__init__(src, ts_node)
         self.type: TypeNode = self.child_by_field_name('type')
-        self.declarator: FunctionDeclaratorNode = self.child_by_field_name('declarator')
+        self.declarator: FunctionDeclaratorNode = self.child_by_field_name(
+            'declarator')
         self.body: CompoundStatementNode = self.child_by_field_name('body')
 
     def __get_nest_function_declarator(self) -> FunctionDeclaratorNode:
@@ -522,19 +518,20 @@ class FunctionDefinitionNode(BasicNode):
             elif declarator.type == 'identifier':
                 break
             else:
-                assert(0)
+                assert (0)
         return last_function_declarator
 
     @property
-    def name(self) -> Optional[IdentifierNode]:
+    def name(self) -> IdentifierNode:
         """
         conclude the name of the function
         """
 
-        return self.__get_nest_function_declarator().child_by_field_name('declarator')
+        return self.__get_nest_function_declarator().child_by_field_name(
+            'declarator')
 
     @property
-    def parameters(self) -> Optional[ParameterListNode]:
+    def parameters(self) -> ParameterListNode:
         """ conclude the parameters of the function
 
         The node function_declarator in tree-sitter has two fields:
@@ -545,7 +542,27 @@ class FunctionDefinitionNode(BasicNode):
         is `(int)`, while `int a` is the real parameter of the function.
         """
 
-        return self.__get_nest_function_declarator().child_by_field_name('parameters')
+        return self.__get_nest_function_declarator().child_by_field_name(
+            'parameters')
+
+    @property
+    def type_qualifier(self) -> List[TypeQualifierNode]:
+        """
+        get the type qualifier of the parameter
+        """
+
+        return [_c for _c in self.children if isinstance(_c, TypeQualifierNode)]
+
+    @property
+    def storage_class_specifier(self) -> List[StorageClassSpecifierNode]:
+        """
+        get the storage class specifier of the parameter
+        """
+
+        return [
+            _c for _c in self.children
+            if isinstance(_c, StorageClassSpecifierNode)
+        ]
 
     @property
     def static(self) -> bool:
@@ -562,6 +579,7 @@ class FunctionDefinitionNode(BasicNode):
         """
         storage_class_specifiers = [_.src for _ in self.children]
         return True if 'inline' in storage_class_specifiers else False
+
 
 class SubscriptExpressionNode(BasicNode):
 
