@@ -37,6 +37,20 @@ class CCode:
         n_lst = self.get_by_type_name(type_name)
         return [n for n in n_lst if n.query(query)]
 
+    def get_by_type_name_and_field(self, type_name: str,
+                                   field: Dict[str, str]) -> list:
+        n_lst = self.get_by_type_name(type_name)
+
+        def check_field(n: BasicNode) -> bool:
+            for _k, _v in field.items():
+                child = n.child_by_field_name(_k)
+                assert (child)  # TODO: self-defined exception
+                if not _v == child.src:
+                    return False
+            return True
+
+        return [n for n in n_lst if check_field(n)]
+
 
 class CFile(CCode):
     """ TODO
