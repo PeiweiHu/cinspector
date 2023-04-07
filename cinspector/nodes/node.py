@@ -2,7 +2,7 @@
 Make a wrapper of tree-sitter node
 """
 import os
-from typing import Dict
+from typing import Dict, Optional
 from tree_sitter import Language, Parser
 
 
@@ -90,10 +90,10 @@ class Query():
                 return False
         return True
 
-    def _identifier_result(self) -> str:
+    def _identifier_result(self) -> Optional[str]:
         raise NotImplementedError
 
-    def _type_identifier_result(self) -> str:
+    def _type_identifier_result(self) -> Optional[str]:
         raise NotImplementedError
 
 

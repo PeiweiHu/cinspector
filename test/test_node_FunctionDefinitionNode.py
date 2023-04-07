@@ -23,7 +23,8 @@ class TestFunctionDefinitionNode:
         func = cc.get_by_type_name('function_definition')
 
         # test the property name
-        func = [_ for _ in func if _.name.src == 'func'][0]
+        func = cc.get_by_type_name_and_query('function_definition',
+                                             {'identifier': 'func'})[0]
         assert (isinstance(func, FunctionDefinitionNode))
         # test the property inline and static
         assert (func.inline and func.static)
@@ -60,9 +61,8 @@ class TestFunctionDefinitionNode:
 
     def test_foo(self):
         cc = CCode(SRC)
-        foo = cc.get_by_type_name('function_definition')
-        # test the property name
-        foo = [_ for _ in foo if _.name.src == 'foo'][0]
+        foo = cc.get_by_type_name_and_query('function_definition',
+                                            {'identifier': 'foo'})[0]
         # test the property parameters
         # int (*func_pointer)(const static int *)
         para_decl1 = foo.parameters.children[0]
@@ -71,9 +71,8 @@ class TestFunctionDefinitionNode:
 
     def test_bar(self):
         cc = CCode(SRC)
-        bar = cc.get_by_type_name('function_definition')
-        # test the property name
-        bar = [_ for _ in bar if _.name.src == 'bar'][0]
+        bar = cc.get_by_type_name_and_query('function_definition',
+                                            {'identifier': 'bar'})[0]
 
         # int (*cmp)(void *)
         para_decl = bar.parameters.children[0]

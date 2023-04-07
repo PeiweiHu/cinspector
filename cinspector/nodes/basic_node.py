@@ -292,6 +292,9 @@ class StructSpecifierNode(BasicNode):
             'name')
         self.body: FieldDeclarationListNode = self.child_by_field_name('body')
 
+    def _type_identifier_result(self) -> Optional[str]:
+        return self.name.src if self.name else None
+
 
 class TypeQualifierNode(BasicNode):
     """ Wrapper for type qualifier node in tree-sitter
@@ -598,6 +601,9 @@ class FunctionDefinitionNode(BasicNode):
             'declarator')
         self.body: CompoundStatementNode = self.child_by_field_name('body')
 
+    def _identifier_result(self) -> Optional[str]:
+        return self.name.src
+
     def __get_nest_function_declarator(self) -> FunctionDeclaratorNode:
         """
         function_declarator may be nested, e.g. int (*func(int a))(int b).
@@ -755,13 +761,14 @@ class EnumSpecifierNode(BasicNode):
 
     def __init__(self, src: str, ts_node=None) -> None:
         super().__init__(src, ts_node)
-        self.name = self.child_by_field_name('name')
+        self.name: Optional[TypeIdentifierNode] = self.child_by_field_name(
+            'name')
         # inner property
         self._body: EnumeratorListNode = self.child_by_field_name('body')
         self.kv: dict = self._body.kv
 
-    def _type_identifier_result(self) -> str:
-        return self.name.src
+    def _type_identifier_result(self) -> Optional[str]:
+        return self.name.src if self.name else None
 
     def unsolved_value(self):
         """

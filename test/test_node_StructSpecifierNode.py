@@ -23,7 +23,6 @@ class TestStructSpecifierNode:
         assert (isinstance(struct, StructSpecifierNode))
 
         decl_lst = struct.body
-        print(type(decl_lst))
         assert (isinstance(decl_lst, FieldDeclarationListNode))
         decl_lst = decl_lst.children
         assert (len(decl_lst) == 2)
@@ -37,3 +36,9 @@ class TestStructSpecifierNode:
         assert (isinstance(struct_anonymous, FieldDeclarationNode))
         assert (isinstance(struct_anonymous.type, StructSpecifierNode))
         assert (struct_anonymous.declarator is None)
+
+        # test Query for StructSpecifierNode
+        struct_st = cc.get_by_type_name_and_query('struct_specifier',
+                                                  {'type_identifier': 'st'})[0]
+        assert (isinstance(struct_st, StructSpecifierNode))
+        assert (struct_st.name.src == 'st')
