@@ -23,11 +23,60 @@ course, the user can also get the str format by invoking the method src().
 """
 
 from functools import cmp_to_key
-from typing import List, Optional, Dict, Iterable
+from typing import List, Optional, Dict, Iterable, Union
 from .node import Node, Util
 
 
 class BasicNode(Node, Util):
+    """ The ancestor of all wrapper classes of tree-sitter nodes
+
+    For those tree-sitter nodes that do not have corresponding wrapper, they
+    use BasicNode as the default wrapper.
+
+    Pay attention to the difference betweeen <internal_src> and <src>.
+    Considering the way cinspector is used, every BasicNode (or its subclass)
+    belongs to a code snippet. The <internal_src> stores the source code of
+    the whole code snippet while src stores the source code of the current
+    node. For example, if we have a code snippet:
+
+        int a;
+        int func() {return 0;}
+
+    Assume func_node represents the function <func> in the code snippet and is
+    an instance of FunctionDefinitionNode. Then, the <src> of func_node is 'int
+    func() {return 0;}'. While the <internal_src> of func_node is the whole
+    code snippet.
+
+    Attributes:
+        internal_src (str): the source code of the whole code snippet.
+        internal (tree_sitter.Node): the corresponding tree-sitter node of
+            the current wrapper class.
+        type (str): the type of the current wrapper class.
+        ts_type (str): type of the corresponding tree-sitter node, we design
+            this since the wrapper class and corresponding tree-sitter node may
+            have different type under some situations.
+        start_point (tuple): the start position of the current node in
+            internal_src.
+        end_point (tuple): the end position of the current node in
+            internal_src.
+        child_count (int): the number of children of the current node.
+        src (str): the source code of the current node.
+
+    Properties:
+        parent (BasicNode): the parent node of the current node.
+        children (List[BasicNode]): the children nodes of the current node.
+
+    Methods:
+        equal(_o: 'BasicNode'): check whether the current node is equal to _o.
+        sort_nodes(nodes: Iterable, reverse: bool = False): sort the nodes by
+            their position in internal_src.
+        make_wrapper(ts_node: tree-sitter.Node): make a wrapper class for the
+            tree-sitter node.
+        child_by_field_name(field_name: str): get the specific field of the
+            current node.
+        children_by_type_name(type_name: Union[str, List[str]): get the
+        children nodes belonging to the specific type.
+    """
 
     def __init__(self, src: str, ts_node=None) -> None:
         self.internal_src = src
@@ -70,13 +119,13 @@ class BasicNode(Node, Util):
         # return f'({self.__hash__}){self.src}'
         return self.src
 
-    def equal(self, __o) -> bool:
-        is_node = isinstance(__o, BasicNode)
-        internal_src_eq = (self.internal_src == __o.internal_src)
-        position_eq = (self.internal.start_point == __o.internal.start_point)
+    def equal(self, _o: 'BasicNode') -> bool:
+        assert (isinstance(_o, BasicNode))
+        internal_src_eq = (self.internal_src == _o.internal_src)
+        position_eq = (self.internal.start_point == _o.internal.start_point)
         position_eq = position_eq and (self.internal.end_point
-                                       == __o.internal.end_point)
-        return is_node and internal_src_eq and position_eq
+                                       == _o.internal.end_point)
+        return internal_src_eq and position_eq
 
     @property
     def parent(self):
@@ -84,7 +133,7 @@ class BasicNode(Node, Util):
             self._parent = self.make_wrapper(self.internal.parent)
         return self._parent
 
-    def in_front(self, node):
+    def in_front(self, node: 'BasicNode'):
         return self.start_point[0] < node.start_point[0] or \
             (self.start_point[0] == node.start_point[0] and self.start_point[1] < node.start_point[1])
 
@@ -161,11 +210,11 @@ class BasicNode(Node, Util):
             ts_node.type] if ts_node.type in wrapper_dict.keys() else BasicNode
         return init_func(self.internal_src, ts_node)
 
-    def child_by_field_name(self, name):
+    def child_by_field_name(self, name: str):
         assert (type(name) == str)
         return self.make_wrapper(self.internal.child_by_field_name(name))
 
-    def children_by_type_name(self, name):
+    def children_by_type_name(self, name: Union[str, List[str]]):
         if type(name) == str:
             name = [name]
         node_lst = []
