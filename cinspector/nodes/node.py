@@ -2,6 +2,7 @@
 Make a wrapper of tree-sitter node
 """
 import os
+from typing import Dict
 from tree_sitter import Language, Parser
 
 
@@ -47,6 +48,53 @@ class Util():
         if not node:
             return None
         return self.get_raw(s, node.start_point, node.end_point)
+
+
+class Query():
+    """ Access the specific nodes in the source code
+
+    Query is used to access the nodes with specific properties in the
+    source code. For example, find the enumeration with the type identifier
+    "weekdays". To implement this, we let EnumSpecifierNode inherit from
+    Query and implement the __type_identifier_result method, i.e., returns the
+    field <name>. The class in interface such as CCode will gather
+    all the EnumSpecifierNode and check the query method to find
+    the ideal node.
+
+    Attributes:
+        mapping: a dictionary that maps the query key to the method
+
+    Methods:
+        query: query the node with the given query
+    """
+
+    def __init__(self):
+        pass
+
+    def query(self, query: Dict[str, str]) -> bool:
+        """ Query the node with the given query
+
+        Args:
+            query: the query to be executed
+
+        Returns:
+            True if the node satisfies the query, otherwise False
+        """
+        mapping = {
+            'type_identifier': self._type_identifier_result,
+            'identifier': self._identifier_result,
+        }
+
+        for key, value in query.items():
+            if not mapping[key]() == value:
+                return False
+        return True
+
+    def _identifier_result(self) -> str:
+        raise NotImplementedError
+
+    def _type_identifier_result(self) -> str:
+        raise NotImplementedError
 
 
 class Node():

@@ -11,10 +11,8 @@ CCode is the base interface for any interfaces that
 represent source code, such as CFile.
 """
 
-import os
-from collections import defaultdict
-from typing import List, Any
-from .nodes import BasicNode, FunctionDefinitionNode
+from typing import Dict
+from .nodes import BasicNode
 
 
 class CProj:
@@ -30,12 +28,14 @@ class CCode:
     def __init__(self, src) -> None:
         self.src = src
         self.node = BasicNode(self.src)
-        # the following attributes maintain specific semantic elements
-        self.func_lst: Any = None
-        self.enum_lst: Any = None
 
-    def get_by_type_name(self, type_name) -> list:
+    def get_by_type_name(self, type_name: str) -> list:
         return self.node.children_by_type_name(type_name)
+
+    def get_by_type_name_and_query(self, type_name: str,
+                                   query: Dict[str, str]) -> list:
+        n_lst = self.get_by_type_name(type_name)
+        return [n for n in n_lst if n.query(query)]
 
 
 class CFile(CCode):

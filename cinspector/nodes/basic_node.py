@@ -24,10 +24,10 @@ course, the user can also get the str format by invoking the method src().
 
 from functools import cmp_to_key
 from typing import List, Optional, Dict, Iterable, Union
-from .node import Node, Util
+from .node import Node, Util, Query
 
 
-class BasicNode(Node, Util):
+class BasicNode(Node, Util, Query):
     """ The ancestor of all wrapper classes of tree-sitter nodes
 
     For those tree-sitter nodes that do not have corresponding wrapper, they
@@ -759,6 +759,9 @@ class EnumSpecifierNode(BasicNode):
         # inner property
         self._body: EnumeratorListNode = self.child_by_field_name('body')
         self.kv: dict = self._body.kv
+
+    def _type_identifier_result(self) -> str:
+        return self.name.src
 
     def unsolved_value(self):
         """

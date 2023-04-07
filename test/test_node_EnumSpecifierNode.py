@@ -44,10 +44,8 @@ class TestEnumSpecifierNode:
 
     def test_A(self):
         cc = CCode(SRC)
-        enums = cc.get_by_type_name('enum_specifier')
-        print(enums)
-        enum = [_ for _ in enums if _.name.src == 'A']
-        enum = enum[0]
+        enum = cc.get_by_type_name_and_query('enum_specifier',
+                                             {'type_identifier': 'A'})[0]
         assert (isinstance(enum, EnumSpecifierNode))
         assert (len(enum.unsolved_value()) == 0)
         # test EnumSpecifierNode.kv
@@ -65,9 +63,8 @@ class TestEnumSpecifierNode:
 
     def test_B(self):
         cc = CCode(SRC)
-        enums = cc.get_by_type_name('enum_specifier')
-        enum = [_ for _ in enums if _.name.src == 'B']
-        enum = enum[0]
+        enum = cc.get_by_type_name_and_query('enum_specifier',
+                                             {'type_identifier': 'B'})[0]
         # test EnumSpecifierNode.kv
         for _k, _v in enum.kv.items():
             assert (_v is None)
@@ -80,9 +77,8 @@ class TestEnumSpecifierNode:
 
     def test_C(self):
         cc = CCode(SRC)
-        enums = cc.get_by_type_name('enum_specifier')
-        enum = [_ for _ in enums if _.name.src == 'C']
-        enum = enum[0]
+        enum = cc.get_by_type_name_and_query('enum_specifier',
+                                             {'type_identifier': 'C'})[0]
         # test EnumSpecifierNode.kv
         for _k, _v in enum.kv.items():
             if _k.src == 'C1':
@@ -103,9 +99,8 @@ class TestEnumSpecifierNode:
 
     def test_D(self):
         cc = CCode(SRC)
-        enums = cc.get_by_type_name('enum_specifier')
-        enum = [_ for _ in enums if _.name.src == 'D']
-        enum = enum[0]
+        enum = cc.get_by_type_name_and_query('enum_specifier',
+                                             {'type_identifier': 'D'})[0]
         # test EnumSpecifierNode.kv
         for _k, _v in enum.kv.items():
             if _k.src == 'D2':
@@ -133,9 +128,8 @@ class TestEnumSpecifierNode:
 
     def test_E(self):
         cc = CCode(SRC)
-        enums = cc.get_by_type_name('enum_specifier')
-        enum = [_ for _ in enums if _.name.src == 'E']
-        enum = enum[0]
+        enum = cc.get_by_type_name_and_query('enum_specifier',
+                                             {'type_identifier': 'E'})[0]
         # test EnumSpecifierNode.kv
         for _k, _v in enum.kv.items():
             if _k.src == 'E2':
