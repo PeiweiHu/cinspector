@@ -44,8 +44,9 @@ class TestEnumSpecifierNode:
 
     def test_A(self):
         cc = CCode(SRC)
-        enum = cc.get_enum('A')
-        assert (len(enum) == 1)
+        enums = cc.get_by_type_name('enum_specifier')
+        print(enums)
+        enum = [_ for _ in enums if _.name.src == 'A']
         enum = enum[0]
         assert (isinstance(enum, EnumSpecifierNode))
         assert (len(enum.unsolved_value()) == 0)
@@ -64,8 +65,8 @@ class TestEnumSpecifierNode:
 
     def test_B(self):
         cc = CCode(SRC)
-        enum = cc.get_enum('B')
-        assert (len(enum) == 1)
+        enums = cc.get_by_type_name('enum_specifier')
+        enum = [_ for _ in enums if _.name.src == 'B']
         enum = enum[0]
         # test EnumSpecifierNode.kv
         for _k, _v in enum.kv.items():
@@ -79,8 +80,8 @@ class TestEnumSpecifierNode:
 
     def test_C(self):
         cc = CCode(SRC)
-        enum = cc.get_enum('C')
-        assert (len(enum) == 1)
+        enums = cc.get_by_type_name('enum_specifier')
+        enum = [_ for _ in enums if _.name.src == 'C']
         enum = enum[0]
         # test EnumSpecifierNode.kv
         for _k, _v in enum.kv.items():
@@ -102,8 +103,8 @@ class TestEnumSpecifierNode:
 
     def test_D(self):
         cc = CCode(SRC)
-        enum = cc.get_enum('D')
-        assert (len(enum) == 1)
+        enums = cc.get_by_type_name('enum_specifier')
+        enum = [_ for _ in enums if _.name.src == 'D']
         enum = enum[0]
         # test EnumSpecifierNode.kv
         for _k, _v in enum.kv.items():
@@ -132,8 +133,8 @@ class TestEnumSpecifierNode:
 
     def test_E(self):
         cc = CCode(SRC)
-        enum = cc.get_enum('E')
-        assert (len(enum) == 1)
+        enums = cc.get_by_type_name('enum_specifier')
+        enum = [_ for _ in enums if _.name.src == 'E']
         enum = enum[0]
         # test EnumSpecifierNode.kv
         for _k, _v in enum.kv.items():
