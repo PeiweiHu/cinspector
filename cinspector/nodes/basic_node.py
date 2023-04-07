@@ -127,13 +127,16 @@ class BasicNode(Node, Util):
             'enumerator_list': EnumeratorListNode,
             'enumerator': EnumeratorNode,
             'expression_statement': ExpressionStatementNode,
+            'field_identifier': FieldIdentifierNode,
+            'field_declaration_list': FieldDeclarationListNode,
+            'field_declaration': FieldDeclarationNode,
             'function_definition': FunctionDefinitionNode,
             'function_declarator': FunctionDeclaratorNode,
             'for_statement': ForStatementNode,
             'if_statement': IfStatementNode,
             'init_declarator': InitDeclaratorNode,
             'identifier': IdentifierNode,
-            'type_identifier': TypeNode,
+            'type_identifier': TypeIdentifierNode,
             'primitive_type': TypeNode,
             'number_literal': NumberLiteralNode,
             'parenthesized_expression': ParenthesizedExpressionNode,
@@ -143,12 +146,13 @@ class BasicNode(Node, Util):
             'parameter_declaration': ParameterDeclarationNode,
             'parameter_list': ParameterListNode,
             'return_statement': ReturnStatementNode,
+            'struct_specifier': StructSpecifierNode,
             'subscript_expression': SubscriptExpressionNode,
             'storage_class_specifier': StorageClassSpecifierNode,
             'sized_type_specifier': TypeNode,
             'macro_type_specifier': TypeNode,
-            'struct_specifier': TypeNode,
             'type_qualifier': TypeQualifierNode,
+            'type_identifier': TypeIdentifierNode,
             'unary_expression': UnaryExpressionNode,
             'variadic_parameter': VariadicParameterNode,
             'while_statement': WhileStatementNode,
@@ -192,6 +196,52 @@ class TypeNode(BasicNode):
 
     def is_array(self):
         return self.array_level != 0
+
+
+class TypeIdentifierNode(BasicNode):
+    """ Wrapper for type_identifier node in tree-sitter
+    """
+    pass
+
+
+class FieldIdentifierNode(BasicNode):
+    """ Wrapper for field_identifier node in tree-sitter
+    """
+    pass
+
+
+class FieldDeclarationListNode(BasicNode):
+    """ Wrapper for field_declaration_list node in tree-sitter
+
+    One can get all field_declaration by children()
+    """
+
+    def __init__(self, src: str, ts_node=None) -> None:
+        super().__init__(src, ts_node)
+
+
+class FieldDeclarationNode(BasicNode):
+    """ Wrapper for field_declaration node in tree-sitter
+    """
+
+    def __init__(self, src: str, ts_node=None) -> None:
+        super().__init__(src, ts_node)
+        self.type: BasicNode = self.child_by_field_name('type')
+        # declarator is None for the field declaration of anonymous struct
+        self.declarator: Optional[BasicNode] = self.child_by_field_name(
+            'declarator')
+
+
+class StructSpecifierNode(BasicNode):
+    """ Wrapper for struct_specifier node in Tree-sitter
+    """
+
+    def __init__(self, src: str, ts_node=None) -> None:
+        super().__init__(src, ts_node)
+        # name may be None for anaonymous struct
+        self.name: Optional[TypeIdentifierNode] = self.child_by_field_name(
+            'name')
+        self.body: FieldDeclarationListNode = self.child_by_field_name('body')
 
 
 class TypeQualifierNode(BasicNode):
