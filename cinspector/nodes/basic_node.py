@@ -75,7 +75,8 @@ class BasicNode(Node, Util, Query):
         child_by_field_name(field_name: str): get the specific field of the
             current node.
         children_by_type_name(type_name: Union[str, List[str]): get the
-        children nodes belonging to the specific type.
+            children nodes belonging to the specific type.
+        print_tree(): print the parsed tree
     """
 
     def __init__(self, src: str, ts_node=None) -> None:
@@ -215,6 +216,9 @@ class BasicNode(Node, Util, Query):
         return self.make_wrapper(self.internal.child_by_field_name(name))
 
     def children_by_type_name(self, name: Union[str, List[str]]):
+        """
+        Depth-first traverse
+        """
         if type(name) == str:
             name = [name]
         node_lst = []
@@ -226,6 +230,35 @@ class BasicNode(Node, Util, Query):
                 while not cursor.goto_next_sibling():
                     if not cursor.goto_parent():
                         return node_lst
+
+    def print_tree(self):
+        """
+        Print the parsed tree
+        """
+
+        def _tree_nodes():
+            level = 0
+            node_lst = []
+            cursor = self.internal.walk()
+            while True:
+                node_lst.append((self.make_wrapper(cursor.node), level))
+                if not cursor.goto_first_child():
+                    while not cursor.goto_next_sibling():
+                        if not cursor.goto_parent():
+                            return node_lst
+                        else:
+                            level -= 1
+                else:
+                    level += 1
+
+        nlst = _tree_nodes()
+        for _n in nlst:
+            node, level = _n
+            # prepare the format
+            indent = " " * 4 * level
+            t = f"type={node.type}"
+            pos = f"start_point={node.start_point} end_point={node.end_point}"
+            print(indent, type(node).__name__, t, pos, node.src.__repr__())
 
 
 # currently only add commonly used type

@@ -35,6 +35,9 @@ setup(name='cinspector',
           'tree-sitter',
           'networkx',
       ],
+      entry_points={
+          'console_scripts': ['cinspector-parser = cinspector.parser:main',]
+      },
       tests_require=[
           'pytest',
       ],
