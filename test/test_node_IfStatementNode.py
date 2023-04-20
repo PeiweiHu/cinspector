@@ -26,9 +26,9 @@ class TestIfStatementNode:
         # test condition
         assert (stmt0.condition.src == '((a > 10 && b < 20) || b == 20)')
         # test consequence
-        assert (stmt0.consequence.type == 'compound_statement')
+        assert (stmt0.consequence.node_type == 'compound_statement')
         # test alternative
-        assert (stmt0.alternative.type == 'if_statement')
+        assert (stmt0.alternative.node_type == 'if_statement')
         assert (isinstance(stmt0.alternative, IfStatementNode))
         # test entry_constraints
         # the constraint should be [[a > 10, b < 20], [b == 20]]

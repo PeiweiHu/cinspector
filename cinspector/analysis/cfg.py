@@ -52,10 +52,10 @@ class CFG(Util):
         """
         stmt_lst = [
             _ for _ in self.function_def.body.children
-            if _.type not in ['{', '}']
+            if _.node_type not in ['{', '}']
         ]
-        stmt_lst.insert(0, BorderNode(type='<START>'))
-        stmt_lst.append(BorderNode(type='<END>'))
+        stmt_lst.insert(0, BorderNode(node_type='<START>'))
+        stmt_lst.append(BorderNode(node_type='<END>'))
         self.start, self.end = stmt_lst[0], stmt_lst[-1]
         for _ in range(len(stmt_lst) - 1):
             self.cfg.add_edge(stmt_lst[_], stmt_lst[_ + 1])
@@ -106,12 +106,12 @@ class CFG(Util):
             for _c in cur:
                 next += list(self.cfg.successors(_c))
 
-                if _c.type == 'compound_statement':
+                if _c.node_type == 'compound_statement':
                     # divide compound statement directly
                     pred = list(self.cfg.predecessors(_c))
                     succ = list(self.cfg.successors(_c))
                     children = [
-                        _ for _ in _c.children if not _.type in ['{', '}']
+                        _ for _ in _c.children if not _.node_type in ['{', '}']
                     ]
                     # skip empty compound statement
                     if not children:
@@ -130,7 +130,7 @@ class CFG(Util):
                     changed = 1
                     _update_label_map(_c, children[0])
 
-                elif _c.type == 'labeled_statement':
+                elif _c.node_type == 'labeled_statement':
                     # record the statement corresponding to label
                     label = _c.child_by_field_name('label').src
                     label_statement = _c.children[-1]
@@ -147,7 +147,7 @@ class CFG(Util):
                     changed = 1
                     _update_label_map(_c, label_statement)
 
-                elif _c.type == 'if_statement':
+                elif _c.node_type == 'if_statement':
                     """
                     Ideally:
                     from:
@@ -212,7 +212,7 @@ class CFG(Util):
                     changed = 1
                     _update_label_map(_c, [ycond, ncond])
 
-                elif _c.type == 'switch_statement':
+                elif _c.node_type == 'switch_statement':
                     pred = list(self.cfg.predecessors(_c))
                     succ = list(self.cfg.successors(_c))
                     condition = _c.child_by_field_name('condition')
@@ -225,7 +225,7 @@ class CFG(Util):
                         _sw_node_lst.append(_sw_node)
                         _children = []
                         for _ in _case_statement.children:
-                            if _.type in ['case', ':', 'default']:
+                            if _.node_type in ['case', ':', 'default']:
                                 continue
                             if _value and _.src == _value.src:
                                 continue
@@ -248,14 +248,14 @@ class CFG(Util):
                     changed = 1
                     _update_label_map(_c, _sw_node_lst)
 
-                elif _c.type == 'return_statement':
+                elif _c.node_type == 'return_statement':
                     """ To avoid the statements after return statement (e.g.
                         the labeled_statement) is ignored directly, we unlink
                         the return statement with successors later.
                     """
                     pass
 
-                elif _c.type == 'for_statement':
+                elif _c.node_type == 'for_statement':
                     assert (isinstance(_c, ForStatementNode))
                     yloop = YForLoopNode(_c.initializer, _c.condition,
                                          _c.update)
@@ -280,7 +280,7 @@ class CFG(Util):
                     changed = 1
                     _update_label_map(_c, [yloop, nloop])
 
-                elif _c.type == 'while_statement':
+                elif _c.node_type == 'while_statement':
                     assert (isinstance(_c, WhileStatementNode))
                     yloop = YWhileLoopNode(_c.condition)
                     nloop = NWhileLoopNode(_c.condition)
@@ -316,7 +316,7 @@ class CFG(Util):
         # link goto and label
         goto_lst = []
         for _n in self.cfg.nodes:
-            if _n.type == 'goto_statement':
+            if _n.node_type == 'goto_statement':
                 goto_lst.append(_n)
                 # remove old edges
                 succ = list(self.cfg.successors(_n))
@@ -333,7 +333,7 @@ class CFG(Util):
 
         # unlink return statement and successors
         for _n in self.cfg.nodes:
-            if _n.type == 'return_statement':
+            if _n.node_type == 'return_statement':
                 succ = list(self.cfg.successors(_n))
                 for _s in succ:
                     self.cfg.remove_edge(_n, _s)

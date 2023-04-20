@@ -9,26 +9,26 @@ class AbstractNode(Node):
     to the acutal code elemetnts.
     """
 
-    def __init__(self, type=None) -> None:
-        self.type = type
+    def __init__(self, node_type=None) -> None:
+        self.node_type = node_type
 
 
 class BorderNode(AbstractNode):
 
-    def __init__(self, type=None) -> None:
-        super().__init__(type)
+    def __init__(self, node_type=None) -> None:
+        super().__init__(node_type)
 
     def __str__(self) -> str:
-        return self.type
+        return self.node_type
 
     def __repr__(self) -> str:
-        return self.type
+        return self.node_type
 
 
 class IfConditionNode(AbstractNode):
 
-    def __init__(self, condition, type='if_condition') -> None:
-        super().__init__(type)
+    def __init__(self, condition, node_type='if_condition') -> None:
+        super().__init__(node_type)
         self.condition = condition
         self.start_point = self.condition.start_point
         self.end_point = self.condition.end_point
@@ -101,8 +101,8 @@ class IfConditionNode(AbstractNode):
 
 class YConditionNode(IfConditionNode):
 
-    def __init__(self, condition, type='y_if') -> None:
-        super().__init__(condition, type)
+    def __init__(self, condition, node_type='y_if') -> None:
+        super().__init__(condition, node_type)
 
     def __str__(self) -> str:
         return '(Y)' + str(self.condition)
@@ -113,8 +113,8 @@ class YConditionNode(IfConditionNode):
 
 class NConditionNode(IfConditionNode):
 
-    def __init__(self, condition, type='n_if') -> None:
-        super().__init__(condition, type)
+    def __init__(self, condition, node_type='n_if') -> None:
+        super().__init__(condition, node_type)
 
     def __str__(self) -> str:
         return '(N)' + str(self.condition)
@@ -129,8 +129,8 @@ class ForLoopNode(AbstractNode):
                  initializer,
                  condition,
                  update,
-                 type='loop_condition') -> None:
-        self.type = type
+                 node_type='loop_condition') -> None:
+        self.node_type = node_type
         self.initializer = initializer
         self.condition = condition
         self.update = update
@@ -148,8 +148,12 @@ class ForLoopNode(AbstractNode):
 
 class YForLoopNode(ForLoopNode):
 
-    def __init__(self, initializer, condition, update, type='y_loop') -> None:
-        super().__init__(initializer, condition, update, type)
+    def __init__(self,
+                 initializer,
+                 condition,
+                 update,
+                 node_type='y_loop') -> None:
+        super().__init__(initializer, condition, update, node_type)
 
     def __str__(self) -> str:
         return f'Y({self.initializer} {self.condition}; {self.update})'
@@ -160,8 +164,12 @@ class YForLoopNode(ForLoopNode):
 
 class NForLoopNode(ForLoopNode):
 
-    def __init__(self, initializer, condition, update, type='n_loop') -> None:
-        super().__init__(initializer, condition, update, type)
+    def __init__(self,
+                 initializer,
+                 condition,
+                 update,
+                 node_type='n_loop') -> None:
+        super().__init__(initializer, condition, update, node_type)
 
     def __str__(self) -> str:
         return f'N({self.initializer} {self.condition}; {self.update})'
@@ -172,8 +180,8 @@ class NForLoopNode(ForLoopNode):
 
 class WhileLoopNode(AbstractNode):
 
-    def __init__(self, condition, type='loop_condition') -> None:
-        super().__init__(type)
+    def __init__(self, condition, node_type='loop_condition') -> None:
+        super().__init__(node_type)
         self.condition = condition
 
     def children_by_type_name(self, name):
@@ -182,8 +190,8 @@ class WhileLoopNode(AbstractNode):
 
 class YWhileLoopNode(WhileLoopNode):
 
-    def __init__(self, condition, type='y_loop') -> None:
-        super().__init__(condition, type)
+    def __init__(self, condition, node_type='y_loop') -> None:
+        super().__init__(condition, node_type)
 
     def __str__(self) -> str:
         return f'Y({self.condition})'
@@ -194,8 +202,8 @@ class YWhileLoopNode(WhileLoopNode):
 
 class NWhileLoopNode(WhileLoopNode):
 
-    def __init__(self, condition, type='n_loop') -> None:
-        super().__init__(condition, type)
+    def __init__(self, condition, node_type='n_loop') -> None:
+        super().__init__(condition, node_type)
 
     def __str__(self) -> str:
         return f'N({self.condition})'
@@ -206,8 +214,8 @@ class NWhileLoopNode(WhileLoopNode):
 
 class SwitchNode(AbstractNode):
 
-    def __init__(self, condition, case_value, type='switch_node') -> None:
-        super().__init__(type)
+    def __init__(self, condition, case_value, node_type='switch_node') -> None:
+        super().__init__(node_type)
         self.condition = condition
         self.case_value = case_value
 

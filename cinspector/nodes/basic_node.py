@@ -51,8 +51,8 @@ class BasicNode(Node, Util, Query):
         internal_src (str): the source code of the whole code snippet.
         internal (tree_sitter.Node): the corresponding tree-sitter node of
             the current wrapper class.
-        type (str): the type of the current wrapper class.
-        ts_type (str): type of the corresponding tree-sitter node, we design
+        node_type (str): the type of the current wrapper class.
+        ts_type (str): deprecated, type of the corresponding tree-sitter node, we design
             this since the wrapper class and corresponding tree-sitter node may
             have different type under some situations.
         start_point (tuple): the start position of the current node in
@@ -89,7 +89,8 @@ class BasicNode(Node, Util, Query):
         if not ts_node:
             ts_node = self.get_tree(src).root_node
         self.internal = ts_node
-        self.type = ts_node.type
+        self.node_type = ts_node.type
+        # ts_type: deprecated, node_type should be totally consistent with the type of tree-sitter node
         self.ts_type = ts_node.type
         self._parent = None
         self.start_point = ts_node.start_point
@@ -256,7 +257,7 @@ class BasicNode(Node, Util, Query):
             node, level = _n
             # prepare the format
             indent = " " * 4 * level
-            t = f"type={node.type}"
+            t = f"type={node.node_type}"
             pos = f"start_point={node.start_point} end_point={node.end_point}"
             print(indent, type(node).__name__, t, pos, node.src.__repr__())
 
@@ -474,7 +475,7 @@ class DeclarationNode(BasicNode):
         self.decl_type = self.child_by_field_name('type')
         self.declarator = []
         for _c in self.children:
-            if _c.type in [
+            if _c.node_type in [
                     'pointer_declarator', 'array_declarator', 'identifier',
                     'init_declarator'
             ]:
@@ -486,9 +487,9 @@ class DeclarationNode(BasicNode):
             unpack_type = [
                 'pointer_declarator', 'array_declarator', 'init_declarator'
             ]
-            while _decl.type in unpack_type:
+            while _decl.node_type in unpack_type:
                 _decl = _decl.child_by_field_name('declarator')
-            assert (_decl.type == 'identifier')
+            assert (_decl.node_type == 'identifier')
             ids.append(_decl)
         return ids
 
@@ -567,22 +568,22 @@ class ParameterDeclarationNode(BasicNode):
         # self.declarator maybe None, e.g. int func(void)
         while True and declarator:
             # int func(int *a)
-            if declarator.type == 'pointer_declarator':
+            if declarator.node_type == 'pointer_declarator':
                 declarator = declarator.child_by_field_name('declarator')
             # mainly in declaration such as int func(int *)
-            elif declarator.type == 'abstract_pointer_declarator':
+            elif declarator.node_type == 'abstract_pointer_declarator':
                 return None
             # int func(int (*a)())
-            elif declarator.type == 'function_declarator':
+            elif declarator.node_type == 'function_declarator':
                 declarator = declarator.child_by_field_name('declarator')
             # int func(int (*a)())
-            elif declarator.type == 'parenthesized_declarator':
+            elif declarator.node_type == 'parenthesized_declarator':
                 declarator = declarator.children[0]
             # int func(int a[])
-            elif declarator.type == 'array_declarator':
+            elif declarator.node_type == 'array_declarator':
                 declarator = declarator.child_by_field_name('declarator')
             # int func(int a)
-            elif declarator.type == 'identifier':
+            elif declarator.node_type == 'identifier':
                 return declarator
             else:
                 assert (False)
@@ -646,14 +647,14 @@ class FunctionDefinitionNode(BasicNode):
         last_function_declarator = declarator
         # try to find out the nest function_declarator
         while True:
-            if declarator.type == 'function_declarator':
+            if declarator.node_type == 'function_declarator':
                 last_function_declarator = declarator
                 declarator = declarator.child_by_field_name('declarator')
-            elif declarator.type == 'parenthesized_declarator':
+            elif declarator.node_type == 'parenthesized_declarator':
                 declarator = declarator.children[0]
-            elif declarator.type == 'pointer_declarator':
+            elif declarator.node_type == 'pointer_declarator':
                 declarator = declarator.child_by_field_name('declarator')
-            elif declarator.type == 'identifier':
+            elif declarator.node_type == 'identifier':
                 break
             else:
                 assert (0)
