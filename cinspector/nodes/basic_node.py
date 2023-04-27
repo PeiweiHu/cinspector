@@ -51,10 +51,12 @@ class BasicNode(Node, Util, Query):
         internal_src (str): the source code of the whole code snippet.
         internal (tree_sitter.Node): the corresponding tree-sitter node of
             the current wrapper class.
+        internal_tree (tree_sitter.Tree): the corresponding tree-sitter
+            tree of the whole code snippet, internal belongs to this tree.
         node_type (str): the type of the current wrapper class.
-        ts_type (str): deprecated, type of the corresponding tree-sitter node, we design
-            this since the wrapper class and corresponding tree-sitter node may
-            have different type under some situations.
+        ts_type (str): deprecated, type of the corresponding tree-sitter node,
+            we design this since the wrapper class and corresponding
+            tree-sitter node may have different type under some situations.
         start_point (tuple): the start position of the current node in
             internal_src.
         end_point (tuple): the end position of the current node in
@@ -79,7 +81,23 @@ class BasicNode(Node, Util, Query):
         print_tree(): print the parsed tree
     """
 
-    def __init__(self, src: str, ts_node=None) -> None:
+    def __init__(self, src: str, ts_node=None, ts_tree=None) -> None:
+        """
+        Initialize the BasicNode
+
+        Args:
+            src (str): the source code of the WHOLE code snippet, not the
+                current BasicNode.
+            ts_node (tree_sitter.Node): the corresponding tree-sitter node of
+                the current BasicNode
+            ts_tree (tree_sitter.Tree): the corresponding tree-sitter tree of
+                the WHOLE code snippet, this also is the tree that ts_node
+                belongs to.
+
+        Returns:
+            None
+        """
+
         self.internal_src = src
         """
         Ideally, the following condtion is true only when file content is
@@ -87,8 +105,10 @@ class BasicNode(Node, Util, Query):
         should be initialized with ts_node dictated.
         """
         if not ts_node:
-            ts_node = self.get_tree(src).root_node
+            ts_tree = self.get_tree(src)
+            ts_node = ts_tree.root_node
         self.internal = ts_node
+        self.internal_tree = ts_tree
         self.node_type = ts_node.type
         # ts_type: deprecated, node_type should be totally consistent with the type of tree-sitter node
         self.ts_type = ts_node.type
@@ -210,7 +230,7 @@ class BasicNode(Node, Util, Query):
         }
         init_func = wrapper_dict[
             ts_node.type] if ts_node.type in wrapper_dict.keys() else BasicNode
-        return init_func(self.internal_src, ts_node)
+        return init_func(self.internal_src, ts_node, self.internal_tree)
 
     def child_by_field_name(self, name: str):
         assert (type(name) == str)
@@ -269,8 +289,8 @@ class TypeNode(BasicNode):
     module to conclude the related property.
     """
 
-    def __init__(self, src: str, ts_node=None) -> None:
-        super().__init__(src, ts_node)
+    def __init__(self, src: str, ts_node=None, ts_tree=None) -> None:
+        super().__init__(src, ts_node, ts_tree)
         self.pointer_level = 0
         self.array_level = 0
 
@@ -298,17 +318,15 @@ class FieldDeclarationListNode(BasicNode):
 
     One can get all field_declaration by children()
     """
-
-    def __init__(self, src: str, ts_node=None) -> None:
-        super().__init__(src, ts_node)
+    pass
 
 
 class FieldDeclarationNode(BasicNode):
     """ Wrapper for field_declaration node in tree-sitter
     """
 
-    def __init__(self, src: str, ts_node=None) -> None:
-        super().__init__(src, ts_node)
+    def __init__(self, src: str, ts_node=None, ts_tree=None) -> None:
+        super().__init__(src, ts_node, ts_tree)
         self.type: BasicNode = self.child_by_field_name('type')
         # declarator is None for the field declaration of anonymous struct
         self.declarator: Optional[BasicNode] = self.child_by_field_name(
@@ -319,8 +337,8 @@ class StructSpecifierNode(BasicNode):
     """ Wrapper for struct_specifier node in Tree-sitter
     """
 
-    def __init__(self, src: str, ts_node=None) -> None:
-        super().__init__(src, ts_node)
+    def __init__(self, src: str, ts_node=None, ts_tree=None) -> None:
+        super().__init__(src, ts_node, ts_tree)
         # name may be None for anaonymous struct
         self.name: Optional[TypeIdentifierNode] = self.child_by_field_name(
             'name')
@@ -340,9 +358,7 @@ class TypeQualifierNode(BasicNode):
     standard C: const (C89), volatile (C89), restrict (C99)
     and _Atomic (C11)
     """
-
-    def __init__(self, src: str, ts_node=None) -> None:
-        super().__init__(src, ts_node)
+    pass
 
 
 class StorageClassSpecifierNode(BasicNode):
@@ -357,14 +373,13 @@ class StorageClassSpecifierNode(BasicNode):
     static, and register.
     """
 
-    def __init__(self, src: str, ts_node=None) -> None:
-        super().__init__(src, ts_node)
+    pass
 
 
 class WhileStatementNode(BasicNode):
 
-    def __init__(self, src: str, ts_node=None) -> None:
-        super().__init__(src, ts_node)
+    def __init__(self, src: str, ts_node=None, ts_tree=None) -> None:
+        super().__init__(src, ts_node, ts_tree)
         self.condition = self.child_by_field_name('condition')
         if self.children:
             self.body = self.children[-1]
@@ -374,8 +389,8 @@ class WhileStatementNode(BasicNode):
 
 class IdentifierNode(BasicNode):
 
-    def __init__(self, src: str, ts_node=None) -> None:
-        super().__init__(src, ts_node)
+    def __init__(self, src: str, ts_node=None, ts_tree=None) -> None:
+        super().__init__(src, ts_node, ts_tree)
 
     def __eq__(self, obj):
         return super().__eq__(obj)
@@ -386,16 +401,16 @@ class IdentifierNode(BasicNode):
 
 class CaseExpressionNode(BasicNode):
 
-    def __init__(self, src: str, ts_node=None) -> None:
-        super().__init__(src, ts_node)
+    def __init__(self, src: str, ts_node=None, ts_tree=None) -> None:
+        super().__init__(src, ts_node, ts_tree)
         self.type = self.child_by_field_name('type')
         self.value = self.child_by_field_name('value')
 
 
 class UnaryExpressionNode(BasicNode):
 
-    def __init__(self, src: str, ts_node=None) -> None:
-        super().__init__(src, ts_node)
+    def __init__(self, src: str, ts_node=None, ts_tree=None) -> None:
+        super().__init__(src, ts_node, ts_tree)
         self.argument = self.child_by_field_name('argument')
 
     def used_ids(self):
@@ -405,8 +420,8 @@ class UnaryExpressionNode(BasicNode):
 
 class ConditionalExpressionNode(BasicNode):
 
-    def __init__(self, src: str, ts_node=None) -> None:
-        super().__init__(src, ts_node)
+    def __init__(self, src: str, ts_node=None, ts_tree=None) -> None:
+        super().__init__(src, ts_node, ts_tree)
         self.condition = self.child_by_field_name('condition')
         self.consequence = self.child_by_field_name('consequence')
         self.alternative = self.child_by_field_name('alternative')
@@ -414,21 +429,20 @@ class ConditionalExpressionNode(BasicNode):
 
 class NumberLiteralNode(BasicNode):
 
-    def __init__(self, src: str, ts_node=None) -> None:
-        super().__init__(src, ts_node)
+    pass
 
 
 class ReturnStatementNode(BasicNode):
 
-    def __init__(self, src: str, ts_node=None) -> None:
+    def __init__(self, src: str, ts_node=None, ts_tree=None) -> None:
         super().__init__(src, ts_node)
         self.value = self.children[1] if len(self.children) > 1 else None
 
 
 class PreprocFunctionDefNode(BasicNode):
 
-    def __init__(self, src: str, ts_node=None) -> None:
-        super().__init__(src, ts_node)
+    def __init__(self, src: str, ts_node=None, ts_tree=None) -> None:
+        super().__init__(src, ts_node, ts_tree)
         self.name = self.child_by_field_name('name')
         self.parameters = self.child_by_field_name('parameters')
         self.value = self.child_by_field_name('value')
@@ -436,8 +450,8 @@ class PreprocFunctionDefNode(BasicNode):
 
 class ForStatementNode(BasicNode):
 
-    def __init__(self, src: str, ts_node=None) -> None:
-        super().__init__(src, ts_node)
+    def __init__(self, src: str, ts_node=None, ts_tree=None) -> None:
+        super().__init__(src, ts_node, ts_tree)
         self.initializer = self.child_by_field_name('initializer')
         self.condition = self.child_by_field_name('condition')
         self.update = self.child_by_field_name('update')
@@ -449,8 +463,8 @@ class ForStatementNode(BasicNode):
 
 class BinaryExpressionNode(BasicNode):
 
-    def __init__(self, src: str, ts_node=None) -> None:
-        super().__init__(src, ts_node)
+    def __init__(self, src: str, ts_node=None, ts_tree=None) -> None:
+        super().__init__(src, ts_node, ts_tree)
         self.left = self.child_by_field_name('left')
         self.right = self.child_by_field_name('right')
         self.symbol = self.get_raw(self.internal_src, self.left.end_point,
@@ -464,8 +478,8 @@ class BinaryExpressionNode(BasicNode):
 
 class DeclarationNode(BasicNode):
 
-    def __init__(self, src: str, ts_node=None) -> None:
-        super().__init__(src, ts_node)
+    def __init__(self, src: str, ts_node=None, ts_tree=None) -> None:
+        super().__init__(src, ts_node, ts_tree)
         # TODO: duplicate name, comment temporarily
         # self.type = self.child_by_field_name('type')
 
@@ -496,8 +510,8 @@ class DeclarationNode(BasicNode):
 
 class ParenthesizedExpressionNode(BasicNode):
 
-    def __init__(self, src: str, ts_node=None) -> None:
-        super().__init__(src, ts_node)
+    def __init__(self, src: str, ts_node=None, ts_tree=None) -> None:
+        super().__init__(src, ts_node, ts_tree)
 
     def remove_parenthese(self):
         # children[0] and children[2] is ( and )
@@ -506,9 +520,9 @@ class ParenthesizedExpressionNode(BasicNode):
 
 class IfStatementNode(BasicNode):
 
-    def __init__(self, src: str, ts_node=None) -> None:
+    def __init__(self, src: str, ts_node=None, ts_tree=None) -> None:
         from .abstract_node import IfConditionNode
-        super().__init__(src, ts_node)
+        super().__init__(src, ts_node, ts_tree)
         self.condition = self.child_by_field_name('condition')
         # By AbstractNode, we assume there is a node with the type
         # if_condition, which is actually non-exist in tree-sitter.
@@ -533,8 +547,8 @@ class ParameterDeclarationNode(BasicNode):
             int func(int).
     """
 
-    def __init__(self, src: str, ts_node=None) -> None:
-        super().__init__(src, ts_node)
+    def __init__(self, src: str, ts_node=None, ts_tree=None) -> None:
+        super().__init__(src, ts_node, ts_tree)
 
         # fields of the tree-sitter node
         self.type = self.child_by_field_name('type')
@@ -598,8 +612,7 @@ class ParameterListNode(BasicNode):
     <children>.
     """
 
-    def __init__(self, src: str, ts_node=None) -> None:
-        super().__init__(src, ts_node)
+    pass
 
 
 class FunctionDeclaratorNode(BasicNode):
@@ -610,8 +623,8 @@ class FunctionDeclaratorNode(BasicNode):
         parameters (ParameterListNode): parameters
     """
 
-    def __init__(self, src: str, ts_node=None) -> None:
-        super().__init__(src, ts_node)
+    def __init__(self, src: str, ts_node=None, ts_tree=None) -> None:
+        super().__init__(src, ts_node, ts_tree)
         self.declarator: BasicNode = self.child_by_field_name('declarator')
         self.parameters: ParameterListNode = self.child_by_field_name(
             'parameters')
@@ -628,8 +641,8 @@ class FunctionDefinitionNode(BasicNode):
     TODO: name may be None under some cases
     """
 
-    def __init__(self, src: str, ts_node=None) -> None:
-        super().__init__(src, ts_node)
+    def __init__(self, src: str, ts_node=None, ts_tree=None) -> None:
+        super().__init__(src, ts_node, ts_tree)
         self.type: TypeNode = self.child_by_field_name('type')
         self.declarator: FunctionDeclaratorNode = self.child_by_field_name(
             'declarator')
@@ -722,16 +735,16 @@ class FunctionDefinitionNode(BasicNode):
 
 class SubscriptExpressionNode(BasicNode):
 
-    def __init__(self, src: str, ts_node=None) -> None:
-        super().__init__(src, ts_node)
+    def __init__(self, src: str, ts_node=None, ts_tree=None) -> None:
+        super().__init__(src, ts_node, ts_tree)
         self.argument = self.child_by_field_name('argument')
         self.index = self.child_by_field_name('index')
 
 
 class CallExpressionNode(BasicNode):
 
-    def __init__(self, src: str, ts_node=None) -> None:
-        super().__init__(src, ts_node)
+    def __init__(self, src: str, ts_node=None, ts_tree=None) -> None:
+        super().__init__(src, ts_node, ts_tree)
         self.function = self.child_by_field_name('function')
         self.arguments = self.child_by_field_name(
             'arguments').children  # at least ( and ) as children
@@ -748,30 +761,29 @@ class CallExpressionNode(BasicNode):
 
 class ExpressionStatementNode(BasicNode):
 
-    def __init__(self, src: str, ts_node=None) -> None:
-        super().__init__(src, ts_node)
+    pass
 
 
 class AssignmentExpressionNode(BasicNode):
 
-    def __init__(self, src: str, ts_node=None) -> None:
-        super().__init__(src, ts_node)
+    def __init__(self, src: str, ts_node=None, ts_tree=None) -> None:
+        super().__init__(src, ts_node, ts_tree)
         self.left = self.child_by_field_name('left')
         self.right = self.child_by_field_name('right')
 
 
 class InitDeclaratorNode(BasicNode):
 
-    def __init__(self, src: str, ts_node=None) -> None:
-        super().__init__(src, ts_node)
+    def __init__(self, src: str, ts_node=None, ts_tree=None) -> None:
+        super().__init__(src, ts_node, ts_tree)
         self.declarator = self.child_by_field_name('declarator')
         self.value = self.child_by_field_name('value')
 
 
 class PreprocArgNode(BasicNode):
 
-    def __init__(self, src: str, ts_node=None) -> None:
-        super().__init__(src, ts_node)
+    def __init__(self, src: str, ts_node=None, ts_tree=None) -> None:
+        super().__init__(src, ts_node, ts_tree)
         # Tree-sitter parser will include the useless spaces
         # in preproc_arg, thus we do strip() for src.
         self.src = self.src.strip()
@@ -779,8 +791,8 @@ class PreprocArgNode(BasicNode):
 
 class PreprocDefNode(BasicNode):
 
-    def __init__(self, src: str, ts_node=None) -> None:
-        super().__init__(src, ts_node)
+    def __init__(self, src: str, ts_node=None, ts_tree=None) -> None:
+        super().__init__(src, ts_node, ts_tree)
         self.name = self.child_by_field_name('name')
         self.value = self.child_by_field_name('value')
 
@@ -793,8 +805,8 @@ class PreprocDefNode(BasicNode):
 
 class EnumSpecifierNode(BasicNode):
 
-    def __init__(self, src: str, ts_node=None) -> None:
-        super().__init__(src, ts_node)
+    def __init__(self, src: str, ts_node=None, ts_tree=None) -> None:
+        super().__init__(src, ts_node, ts_tree)
         self.name: Optional[TypeIdentifierNode] = self.child_by_field_name(
             'name')
         # inner property
@@ -883,8 +895,8 @@ class EnumSpecifierNode(BasicNode):
 
 class EnumeratorListNode(BasicNode):
 
-    def __init__(self, src: str, ts_node=None) -> None:
-        super().__init__(src, ts_node)
+    def __init__(self, src: str, ts_node=None, ts_tree=None) -> None:
+        super().__init__(src, ts_node, ts_tree)
         self.enumerator = self.children_by_type_name('enumerator')
         self.kv = dict()
         for _e in self.enumerator:
@@ -893,16 +905,15 @@ class EnumeratorListNode(BasicNode):
 
 class EnumeratorNode(BasicNode):
 
-    def __init__(self, src: str, ts_node=None) -> None:
-        super().__init__(src, ts_node)
+    def __init__(self, src: str, ts_node=None, ts_tree=None) -> None:
+        super().__init__(src, ts_node, ts_tree)
         self.name = self.child_by_field_name('name')
         self.value = self.child_by_field_name('value')
 
 
 class VariadicParameterNode(BasicNode):
 
-    def __init__(self, src: str, ts_node=None) -> None:
-        super().__init__(src, ts_node)
+    pass
 
 
 class CompoundStatementNode(BasicNode):
@@ -917,6 +928,6 @@ class CompoundStatementNode(BasicNode):
 
     """
 
-    def __init__(self, src: str, ts_node=None) -> None:
-        super().__init__(src, ts_node)
+    def __init__(self, src: str, ts_node=None, ts_tree=None) -> None:
+        super().__init__(src, ts_node, ts_tree)
         self.statements = self.children
