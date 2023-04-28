@@ -117,7 +117,7 @@ class BasicNode(Node, Util, Query):
         self.end_point = ts_node.end_point
         self.child_count = ts_node.child_count
         self._children = None
-        self.src = self.get_node_raw(self.internal_src, ts_node)
+        self.src = self.internal.text.decode("utf8")
 
     @property
     def children(self):
