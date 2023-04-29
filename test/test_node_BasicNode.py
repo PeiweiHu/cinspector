@@ -1,5 +1,5 @@
 from cinspector.interfaces import CCode
-from cinspector.nodes import BasicNode
+from cinspector.nodes import BasicNode, Util
 
 SRC = """
     int a, b, c = 1;
@@ -26,13 +26,13 @@ class TestSort:
             assert (_ in id_dic.keys())
 
         lst = [id_dic['b'], id_dic['e'], id_dic['c'], id_dic['a'], id_dic['d']]
-        ascending = BasicNode.sort_nodes(lst)
+        ascending = Util.sort_nodes(lst)
         assert (ascending[0].src == 'a')
         assert (ascending[1].src == 'b')
         assert (ascending[2].src == 'c')
         assert (ascending[3].src == 'd')
         assert (ascending[4].src == 'e')
-        descending = BasicNode.sort_nodes(lst, reverse=True)
+        descending = Util.sort_nodes(lst, reverse=True)
         assert (descending[4].src == 'a')
         assert (descending[3].src == 'b')
         assert (descending[2].src == 'c')

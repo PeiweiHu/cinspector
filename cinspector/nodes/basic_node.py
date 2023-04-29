@@ -22,7 +22,6 @@ ParameterDeclarationNode is an instance of IdentifierNode instead of str. Of
 course, the user can also get the str format by invoking the method src().
 """
 
-from functools import cmp_to_key
 from typing import List, Optional, Dict, Iterable, Union
 from .node import Node, Util, Query
 
@@ -70,8 +69,6 @@ class BasicNode(Node, Util, Query):
 
     Methods:
         equal(_o: 'BasicNode'): check whether the current node is equal to _o.
-        sort_nodes(nodes: Iterable, reverse: bool = False): sort the nodes by
-            their position in internal_src.
         make_wrapper(ts_node: tree-sitter.Node): make a wrapper class for the
             tree-sitter node.
         child_by_field_name(field_name: str): get the specific field of the
@@ -158,30 +155,6 @@ class BasicNode(Node, Util, Query):
     def in_front(self, node: 'BasicNode'):
         return self.start_point[0] < node.start_point[0] or \
             (self.start_point[0] == node.start_point[0] and self.start_point[1] < node.start_point[1])
-
-    @staticmethod
-    def sort_nodes(nodes: Iterable, reverse: bool = False) -> Iterable:
-        """ Sort the instances of BasicNode by their position in source code
-
-        Args:
-            nodes (Iterable): nodes waiting for sorting
-            reverse (bool=False): use descending instead of ascending
-
-        Return:
-            sorted Iterable object
-        """
-
-        def cmp_position(node1: BasicNode, node2: BasicNode) -> int:
-            if node1.start_point[0] < node2.start_point[0] or \
-                    (node1.start_point[0] == node2.start_point[0] and node1.start_point[1] < node2.start_point[1]):
-                return -1
-            else:
-                return 1
-
-        sorted_nodes = sorted(nodes,
-                              key=cmp_to_key(cmp_position),
-                              reverse=reverse)
-        return sorted_nodes
 
     def make_wrapper(self, ts_node):
         if not ts_node:
@@ -486,12 +459,15 @@ class DeclarationNode(BasicNode):
         # a tricky solution since tree-sitter child_by_field_name
         # can only return the first field
         # for example, int a,b; returns a.
-        self.decl_type = self.child_by_field_name('type')
+        self.type = self.child_by_field_name('type')
         self.declarator = []
         for _c in self.children:
             if _c.node_type in [
-                    'pointer_declarator', 'array_declarator', 'identifier',
-                    'init_declarator'
+                    'pointer_declarator',
+                    'array_declarator',
+                    'identifier',
+                    'init_declarator',
+                    'function_declarator',
             ]:
                 self.declarator.append(_c)
 
@@ -499,7 +475,10 @@ class DeclarationNode(BasicNode):
         ids = []
         for _decl in self.declarator:
             unpack_type = [
-                'pointer_declarator', 'array_declarator', 'init_declarator'
+                'pointer_declarator',
+                'array_declarator',
+                'init_declarator',
+                'function_declarator',
             ]
             while _decl.node_type in unpack_type:
                 _decl = _decl.child_by_field_name('declarator')

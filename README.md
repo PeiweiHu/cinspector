@@ -38,7 +38,7 @@ cd cinspector
 
 ## 3. Usage
 
-[Here](https://peiweihu.github.io/cinspector/) is the automatic generated documentation by sphinx. 
+[Here](https://peiweihu.github.io/cinspector/) is the automatic generated documentation by sphinx.
 
 As a quick start, we provide a usage example that how to extract the call relationship in a source file (lets say it's foo.c) in the following. The content of foo.c is shown as below.
 
@@ -96,7 +96,7 @@ Let's sort the nodes in `func_defs` and check whether the first function definit
 ```python
 from cinspector.nodes import *
 
-func_defs = BasicNode.sort_nodes(func_defs)
+func_defs = Util.sort_nodes(func_defs)
 print(func_defs[0].src)
 
 """

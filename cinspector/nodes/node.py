@@ -1,12 +1,23 @@
 """
 Make a wrapper of tree-sitter node
 """
+
+from __future__ import annotations
 import os
-from typing import Dict, Optional
+from functools import cmp_to_key
+from typing import Dict, Optional, Iterable, TYPE_CHECKING
+if TYPE_CHECKING:
+    from .basic_node import BasicNode
 from tree_sitter import Language, Parser
 
 
 class Util():
+    """
+
+    Methods:
+        sort_nodes(nodes: Iterable, reverse: bool = False): sort the nodes by
+            their position in internal_src.
+    """
 
     def get_parser(self):
         abs_path = os.path.abspath(__file__)
@@ -25,6 +36,30 @@ class Util():
         parser = self.get_parser()
         tree = parser.parse(bytes(src, 'utf8'))
         return tree.walk()
+
+    @staticmethod
+    def sort_nodes(nodes: Iterable, reverse: bool = False) -> Iterable:
+        """ Sort the instances of BasicNode by their position in source code
+
+        Args:
+            nodes (Iterable): nodes waiting for sorting
+            reverse (bool=False): use descending instead of ascending
+
+        Return:
+            sorted Iterable object
+        """
+
+        def cmp_position(node1: BasicNode, node2: BasicNode) -> int:
+            if node1.start_point[0] < node2.start_point[0] or \
+                    (node1.start_point[0] == node2.start_point[0] and node1.start_point[1] < node2.start_point[1]):
+                return -1
+            else:
+                return 1
+
+        sorted_nodes = sorted(nodes,
+                              key=cmp_to_key(cmp_position),
+                              reverse=reverse)
+        return sorted_nodes
 
     def get_raw(self, s: str, start: tuple, end: tuple):
         lst = s.split('\n')

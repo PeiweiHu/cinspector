@@ -1,5 +1,5 @@
 from cinspector.interfaces import CCode
-from cinspector.nodes import IfStatementNode, BasicNode
+from cinspector.nodes import IfStatementNode, BasicNode, Util
 
 SRC = """
 int a = 10, b = 20;
@@ -19,7 +19,7 @@ class TestIfStatementNode:
         cc = CCode(SRC)
         if_stmts = cc.get_by_type_name('if_statement')
         assert (len(if_stmts) == 2)  # <if> and <else if> in SRC
-        if_stmts = BasicNode.sort_nodes(if_stmts)
+        if_stmts = Util.sort_nodes(if_stmts)
 
         stmt0 = if_stmts[0]
         assert (isinstance(stmt0, IfStatementNode))
