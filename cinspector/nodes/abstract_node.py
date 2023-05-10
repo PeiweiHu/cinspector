@@ -105,10 +105,10 @@ class YConditionNode(IfConditionNode):
         super().__init__(condition, node_type)
 
     def __str__(self) -> str:
-        return '(Y)' + str(self.condition)
+        return '[if][Y]' + str(self.condition)
 
     def __repr__(self) -> str:
-        return '(Y)' + str(self.condition)
+        return '[if][Y]' + str(self.condition)
 
 
 class NConditionNode(IfConditionNode):
@@ -117,10 +117,10 @@ class NConditionNode(IfConditionNode):
         super().__init__(condition, node_type)
 
     def __str__(self) -> str:
-        return '(N)' + str(self.condition)
+        return '[if][N]' + str(self.condition)
 
     def __repr__(self) -> str:
-        return '(N)' + str(self.condition)
+        return '[if][N]' + str(self.condition)
 
 
 class ForLoopNode(AbstractNode):
@@ -156,10 +156,10 @@ class YForLoopNode(ForLoopNode):
         super().__init__(initializer, condition, update, node_type)
 
     def __str__(self) -> str:
-        return f'Y({self.initializer} {self.condition}; {self.update})'
+        return f'[for][Y]({self.initializer} {self.condition}; {self.update})'
 
     def __repr__(self) -> str:
-        return f'Y({self.initializer} {self.condition}; {self.update})'
+        return f'[for][Y]({self.initializer} {self.condition}; {self.update})'
 
 
 class NForLoopNode(ForLoopNode):
@@ -172,10 +172,26 @@ class NForLoopNode(ForLoopNode):
         super().__init__(initializer, condition, update, node_type)
 
     def __str__(self) -> str:
-        return f'N({self.initializer} {self.condition}; {self.update})'
+        return f'[for][N]({self.initializer} {self.condition}; {self.update})'
 
     def __repr__(self) -> str:
-        return f'N({self.initializer} {self.condition}; {self.update})'
+        return f'[for][N]({self.initializer} {self.condition}; {self.update})'
+
+
+class DoWhileLoopNode(AbstractNode):
+    """
+    Used to represent the condition of do-while loop
+    """
+
+    def __init__(self, condition, node_type='loop_condition') -> None:
+        super().__init__(node_type)
+        self.condition = condition
+
+    def __str__(self) -> str:
+        return f'[do-while][]({self.condition})'
+
+    def __repr__(self) -> str:
+        return f'[do-while][]({self.condition})'
 
 
 class WhileLoopNode(AbstractNode):
@@ -194,10 +210,10 @@ class YWhileLoopNode(WhileLoopNode):
         super().__init__(condition, node_type)
 
     def __str__(self) -> str:
-        return f'Y({self.condition})'
+        return f'[while][Y]({self.condition})'
 
     def __repr__(self) -> str:
-        return f'Y({self.condition})'
+        return f'[while][Y]({self.condition})'
 
 
 class NWhileLoopNode(WhileLoopNode):
@@ -206,10 +222,10 @@ class NWhileLoopNode(WhileLoopNode):
         super().__init__(condition, node_type)
 
     def __str__(self) -> str:
-        return f'N({self.condition})'
+        return f'[while][N]({self.condition})'
 
     def __repr__(self) -> str:
-        return f'N({self.condition})'
+        return f'[while][N]({self.condition})'
 
 
 class SwitchNode(AbstractNode):

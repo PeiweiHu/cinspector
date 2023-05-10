@@ -9,6 +9,7 @@ from cinspector.nodes import ForStatementNode, YForLoopNode, NForLoopNode
 from cinspector.nodes import WhileStatementNode, YWhileLoopNode, NWhileLoopNode
 from cinspector.nodes import IfStatementNode, YConditionNode, NConditionNode
 from cinspector.nodes import SwitchNode, FunctionDefinitionNode
+from cinspector.nodes import DoWhileLoopNode, DoStatementNode
 
 
 class BasicBlock(Util):
@@ -17,10 +18,10 @@ class BasicBlock(Util):
         self.nodes = nodes
 
 
-class CFG(Util):
+class BaseCFG(Util):
 
-    def __init__(self, function_def: FunctionDefinitionNode) -> None:
-        self.function_def = function_def
+    def __init__(self, stmts: List[Node]) -> None:
+        self.stmts = stmts
         self.start: Optional[BorderNode] = None
         self.end: Optional[BorderNode] = None
         self.cfg = DiGraph()
@@ -50,10 +51,7 @@ class CFG(Util):
                 |
               <END>
         """
-        stmt_lst = [
-            _ for _ in self.function_def.body.children
-            if _.node_type not in ['{', '}']
-        ]
+        stmt_lst = self.stmts
         stmt_lst.insert(0, BorderNode(node_type='<START>'))
         stmt_lst.append(BorderNode(node_type='<END>'))
         self.start, self.end = stmt_lst[0], stmt_lst[-1]
@@ -280,6 +278,21 @@ class CFG(Util):
                     changed = 1
                     _update_label_map(_c, [yloop, nloop])
 
+                elif _c.node_type == 'do_statement':
+                    assert (isinstance(_c, DoStatementNode))
+                    cond = DoWhileLoopNode(_c.condition)
+                    body = _c.body
+                    pred = list(self.cfg.predecessors(_c))
+                    succ = list(self.cfg.successors(_c))
+                    self.cfg.add_edge(body, cond)
+                    for _p in pred:
+                        self.cfg.add_edge(_p, body)
+                    for _s in succ:
+                        self.cfg.add_edge(cond, _s)
+                    self.cfg.remove_node(_c)
+                    changed = 1
+                    _update_label_map(_c, [body])
+
                 elif _c.node_type == 'while_statement':
                     assert (isinstance(_c, WhileStatementNode))
                     yloop = YWhileLoopNode(_c.condition)
@@ -345,3 +358,14 @@ class CFG(Util):
         self.merge merge the statements into the basic block
         """
         pass
+
+
+class CFG(BaseCFG):
+
+    def __init__(self, function_def: FunctionDefinitionNode) -> None:
+        self.function_def = function_def
+        stmt_lst = [
+            _ for _ in self.function_def.body.children
+            if _.node_type not in ['{', '}']
+        ]
+        super().__init__(stmt_lst)

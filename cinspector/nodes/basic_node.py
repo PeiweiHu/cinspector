@@ -167,6 +167,7 @@ class BasicNode(Node, Util, Query):
             'conditional_expression': ConditionalExpressionNode,
             'compound_statement': CompoundStatementNode,
             'declaration': DeclarationNode,
+            'do_statement': DoStatementNode,
             'enum_specifier': EnumSpecifierNode,
             'enumerator_list': EnumeratorListNode,
             'enumerator': EnumeratorNode,
@@ -408,7 +409,7 @@ class NumberLiteralNode(BasicNode):
 class ReturnStatementNode(BasicNode):
 
     def __init__(self, src: str, ts_node=None, ts_tree=None) -> None:
-        super().__init__(src, ts_node)
+        super().__init__(src, ts_node, ts_tree)
         self.value = self.children[1] if len(self.children) > 1 else None
 
 
@@ -485,6 +486,14 @@ class DeclarationNode(BasicNode):
             assert (_decl.node_type == 'identifier')
             ids.append(_decl)
         return ids
+
+
+class DoStatementNode(BasicNode):
+
+    def __init__(self, src: str, ts_node=None, ts_tree=None) -> None:
+        super().__init__(src, ts_node, ts_tree)
+        self.body = self.child_by_field_name('body')
+        self.condition = self.child_by_field_name('condition')
 
 
 class ParenthesizedExpressionNode(BasicNode):
