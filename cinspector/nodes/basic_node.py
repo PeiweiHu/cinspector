@@ -792,6 +792,16 @@ class PreprocDefNode(BasicNode):
 
 
 class EnumSpecifierNode(BasicNode):
+    """
+    wrapper of the tree-sitter node with the type <enum_specifier>
+
+    Note that EnumSpecifierNode has different formats:
+
+    1. enum Hash { A, B};  -> the whole string except ';' is EnumSpecifierNode
+    2. void func(enum Hash h);  -> <enum Hash> is EnumSpecifierNode, currently
+        this node has no filed <body>
+
+    """
 
     def __init__(self, src: str, ts_node=None, ts_tree=None) -> None:
         super().__init__(src, ts_node, ts_tree)
@@ -799,7 +809,7 @@ class EnumSpecifierNode(BasicNode):
             'name')
         # inner property
         self._body: EnumeratorListNode = self.child_by_field_name('body')
-        self.kv: dict = self._body.kv
+        self.kv: dict = self._body.kv if self._body else dict()
 
     def _type_identifier_result(self) -> Optional[str]:
         return self.name.src if self.name else None
