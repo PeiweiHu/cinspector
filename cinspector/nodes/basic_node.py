@@ -759,6 +759,17 @@ class AssignmentExpressionNode(BasicNode):
         self.left = self.child_by_field_name('left')
         self.right = self.child_by_field_name('right')
 
+    @property
+    def symbol(self) -> str:
+        """
+        Return the symbol of the assignment expression, e.g.,
+        a |= b owns the symbol |=.
+        """
+
+        symbol_start = self.left.internal.end_byte
+        symbol_end = self.right.internal.start_byte
+        return self.internal_src[symbol_start + 1:symbol_end].strip()
+
 
 class InitDeclaratorNode(BasicNode):
 
