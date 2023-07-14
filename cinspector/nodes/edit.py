@@ -90,7 +90,7 @@ class Edit(Util):
         # construct the BasicNode
         bn = BasicNode(new_src, new_tree.root_node, new_tree)
         target = None
-        for _ in bn.children_by_type_name(node_type):
+        for _ in bn.descendants_by_type_name(node_type):
             if _.start_point == old_start_point:
                 target = _
                 break

@@ -60,7 +60,7 @@ class CallGraph:
         for _f in self.funcs:
             graph.add_node(_f)
             # start analyzing each function
-            calls = _f.children_by_type_name('call_expression')
+            calls = _f.descendants_by_type_name('call_expression')
             for _c in calls:
                 if _c.is_indirect():
                     continue

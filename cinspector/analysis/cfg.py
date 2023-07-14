@@ -214,7 +214,7 @@ class BaseCFG(Util):
                     pred = list(self.cfg.predecessors(_c))
                     succ = list(self.cfg.successors(_c))
                     condition = _c.child_by_field_name('condition')
-                    case_statement_lst = _c.children_by_type_name(
+                    case_statement_lst = _c.descendants_by_type_name(
                         'case_statement')
                     _sw_node_lst = []
                     for _case_statement in case_statement_lst:

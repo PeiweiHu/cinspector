@@ -73,8 +73,9 @@ class BasicNode(Node, Util, Query):
             tree-sitter node.
         child_by_field_name(field_name: str): get the specific field of the
             current node.
-        children_by_type_name(type_name: Union[str, List[str]): get the
-            children nodes belonging to the specific type.
+        descendants(): get all descendants.
+        descendants_by_type_name(type_name: Union[str, List[str]): get the
+            descendants nodes belonging to the specific type.
         print_tree(): print the parsed tree
     """
 
@@ -126,6 +127,7 @@ class BasicNode(Node, Util, Query):
             self._children = [
                 self.make_wrapper(_ch)
                 for _ch in self.internal.children
+                # TODO: Maybe it's better to keep them for consistency.
                 if _ch.type not in ['(', ')', ',', ';', '{', '}']
             ]
         return self._children
@@ -210,21 +212,33 @@ class BasicNode(Node, Util, Query):
         assert (type(name) == str)
         return self.make_wrapper(self.internal.child_by_field_name(name))
 
-    def children_by_type_name(self, name: Union[str, List[str]]):
+    def descendants(self):
         """
-        Depth-first traverse
+        Depth-first traverse to collect all descendants of the
+        current node, the current node itself will not be collected.
         """
-        if type(name) == str:
-            name = [name]
+
         node_lst = []
         cursor = self.internal.walk()
+        root_node = cursor.node
         while True:
-            if cursor.node.type in name:
+            if cursor.node != root_node:
                 node_lst.append(self.make_wrapper(cursor.node))
             if not cursor.goto_first_child():
                 while not cursor.goto_next_sibling():
                     if not cursor.goto_parent():
                         return node_lst
+
+    def descendants_by_type_name(self, name: Union[str, List[str]]):
+        """
+        Depth-first traverse to collect all descendants that satisfy the node_type
+        requirements.
+        """
+
+        if type(name) == str:
+            name = [name]
+
+        return [_ for _ in self.descendants() if _.node_type in name]
 
     def print_tree(self):
         """
@@ -388,7 +402,7 @@ class UnaryExpressionNode(BasicNode):
         self.argument = self.child_by_field_name('argument')
 
     def used_ids(self):
-        ids = self.children_by_type_name('identifier')
+        ids = self.descendants_by_type_name('identifier')
         return ids
 
 
@@ -906,7 +920,7 @@ class EnumeratorListNode(BasicNode):
 
     def __init__(self, src: str, ts_node=None, ts_tree=None) -> None:
         super().__init__(src, ts_node, ts_tree)
-        self.enumerator = self.children_by_type_name('enumerator')
+        self.enumerator = self.descendants_by_type_name('enumerator')
         self.kv = dict()
         for _e in self.enumerator:
             self.kv[_e.name] = _e.value

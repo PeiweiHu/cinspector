@@ -11,7 +11,7 @@ CCode is the base interface for any interfaces that
 represent source code, such as CFile.
 """
 
-from typing import Dict
+from typing import Dict, Callable
 from .nodes import BasicNode
 
 
@@ -30,7 +30,7 @@ class CCode:
         self.node = BasicNode(self.src)
 
     def get_by_type_name(self, type_name: str) -> list:
-        return self.node.children_by_type_name(type_name)
+        return self.node.descendants_by_type_name(type_name)
 
     def get_by_type_name_and_query(self, type_name: str,
                                    query: Dict[str, str]) -> list:
@@ -39,17 +39,29 @@ class CCode:
 
     def get_by_type_name_and_field(self, type_name: str,
                                    field: Dict[str, str]) -> list:
+        """
+        Access the nodes by assigning node_type and fields. Note that
+        the nodes that don't statisfy the type requirements, don't own
+        the assigned FIELDS, and don't own the assigned FIELD VALUES will
+        be filter out.
+
+        Return:
+            list containing the nodes that satisfy the type and field
+            requirements
+        """
+
         n_lst = self.get_by_type_name(type_name)
 
-        def check_field(n: BasicNode) -> bool:
+        def own_field(n: BasicNode) -> bool:
             for _k, _v in field.items():
                 child = n.child_by_field_name(_k)
-                assert (child)  # TODO: self-defined exception
+                if not child:
+                    return False
                 if not _v == child.src:
                     return False
             return True
 
-        return [n for n in n_lst if check_field(n)]
+        return [n for n in n_lst if own_field(n)]
 
 
 class CFile(CCode):

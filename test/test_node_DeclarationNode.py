@@ -26,7 +26,7 @@ class TestDeclarationNode:
                 funcA = _f
         assert (funcA)
         # test
-        declarations = funcA.children_by_type_name('declaration')
+        declarations = funcA.descendants_by_type_name('declaration')
         assert (len(declarations) == 1)
         declaration = declarations[0]
         assert (isinstance(declaration, DeclarationNode))
@@ -48,7 +48,7 @@ class TestDeclarationNode:
                 funcB = _f
         assert (funcB)
         # test
-        declarations = funcB.children_by_type_name('declaration')
+        declarations = funcB.descendants_by_type_name('declaration')
         assert (len(declarations) == 1)
         declaration = declarations[0]
         assert (isinstance(declaration, DeclarationNode))

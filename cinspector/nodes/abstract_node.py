@@ -33,8 +33,8 @@ class IfConditionNode(AbstractNode):
         self.start_point = self.condition.start_point
         self.end_point = self.condition.end_point
 
-    def children_by_type_name(self, type_name):
-        return self.condition.children_by_type_name(type_name)
+    def descendants_by_type_name(self, type_name):
+        return self.condition.descendants_by_type_name(type_name)
 
     def common_entry_constraints(self):
         """
@@ -135,14 +135,14 @@ class ForLoopNode(AbstractNode):
         self.condition = condition
         self.update = update
 
-    def children_by_type_name(self, name):
+    def descendants_by_type_name(self, name):
         children = []
         if self.initializer:
-            children += self.initializer.children_by_type_name(name)
+            children += self.initializer.descendants_by_type_name(name)
         if self.condition:
-            children += self.condition.children_by_type_name(name)
+            children += self.condition.descendants_by_type_name(name)
         if self.update:
-            children += self.update.children_by_type_name(name)
+            children += self.update.descendants_by_type_name(name)
         return children
 
 
@@ -200,8 +200,8 @@ class WhileLoopNode(AbstractNode):
         super().__init__(node_type)
         self.condition = condition
 
-    def children_by_type_name(self, name):
-        return self.condition.children_by_type_name(name)
+    def descendants_by_type_name(self, name):
+        return self.condition.descendants_by_type_name(name)
 
 
 class YWhileLoopNode(WhileLoopNode):
@@ -235,12 +235,12 @@ class SwitchNode(AbstractNode):
         self.condition = condition
         self.case_value = case_value
 
-    def children_by_type_name(self, types):
+    def descendants_by_type_name(self, types):
         rtn = []
         if self.condition:
-            rtn += self.condition.children_by_type_name(types)
+            rtn += self.condition.descendants_by_type_name(types)
         if self.case_value:
-            rtn += self.case_value.children_by_type_name(types)
+            rtn += self.case_value.descendants_by_type_name(types)
         return rtn
 
     def __str__(self) -> str:

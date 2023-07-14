@@ -22,7 +22,7 @@ class TestParameterDeclarationNode:
         cc = CCode(SRC)
         func = cc.get_by_type_name('function_definition')
         func = [_ for _ in func if _.name.src == 'func'][0]
-        para_decl_lst = func.children_by_type_name('parameter_declaration')
+        para_decl_lst = func.descendants_by_type_name('parameter_declaration')
         # number of the parameter
         assert (len(para_decl_lst) == 4)
 
@@ -73,7 +73,7 @@ class TestParameterDeclarationNode:
         bar = [_ for _ in bar if _.name.src == 'bar'][0]
 
         # int (*bar(int (*cmp)(void *)))(int)
-        para_decl_lst = bar.children_by_type_name('parameter_declaration')
+        para_decl_lst = bar.descendants_by_type_name('parameter_declaration')
         for _decl in para_decl_lst:
             if _decl.src == 'int (*cmp)(void *)':
                 assert (_decl.name.src == 'cmp')
