@@ -44,7 +44,14 @@ class TestEnumSpecifierNode:
 
     def test_A(self):
         cc = CCode(SRC)
-        enum = cc.get_by_type_name_and_field('enum_specifier', {'name': 'A'})[0]
+
+        def conditionA(n):
+            if n.node_type == 'enum_specifier':
+                if n.child_by_field_name('name').src == 'A':
+                    return True
+            return False
+
+        enum = cc.get_by_condition(conditionA)[0]
         assert (isinstance(enum, EnumSpecifierNode))
         assert (len(enum.unsolved_value()) == 0)
         # test EnumSpecifierNode.kv

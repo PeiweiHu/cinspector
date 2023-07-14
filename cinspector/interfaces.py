@@ -12,7 +12,7 @@ represent source code, such as CFile.
 """
 
 from typing import Dict, Callable
-from .nodes import BasicNode
+from .nodes import BasicNode, Node
 
 
 class CProj:
@@ -31,6 +31,14 @@ class CCode:
 
     def get_by_type_name(self, type_name: str) -> list:
         return self.node.descendants_by_type_name(type_name)
+
+    def get_by_condition(self, condition: Callable[[Node], bool]) -> list:
+        """
+        Access the nodes that satisfy the condition
+        """
+
+        all_descendants = self.node.descendants()
+        return [_ for _ in all_descendants if condition(_)]
 
     def get_by_type_name_and_query(self, type_name: str,
                                    query: Dict[str, str]) -> list:
