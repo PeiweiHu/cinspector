@@ -240,6 +240,31 @@ class BasicNode(Node, Util, Query):
 
         return [_ for _ in self.descendants() if _.node_type in name]
 
+    def tokenize(self) -> List['BasicNode']:
+        """Tokenize the current code snippet
+
+        Returns:
+            A list (order-sensitive) of tokens
+
+        """
+
+        level = 0
+        node_lst = []
+        cursor = self.internal.walk()
+        while True:
+            # only append leaf nodes
+            if not cursor.node.children:
+                node_lst.append(self.make_wrapper(cursor.node))
+
+            if not cursor.goto_first_child():
+                while not cursor.goto_next_sibling():
+                    if not cursor.goto_parent():
+                        return node_lst
+                    else:
+                        level -= 1
+            else:
+                level += 1
+
     def print_tree(self):
         """
         Print the parsed tree
