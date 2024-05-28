@@ -32,8 +32,8 @@ setup(name='cinspector',
       include_package_data=True,
       url='https://github.com/PeiweiHu/cinspector',
       install_requires=[
-          'tree-sitter',
           'networkx',
+          'tree-sitter==0.20.4',
       ],
       entry_points={
           'console_scripts': ['cinspector-parser = cinspector.parser:main',]

@@ -48,7 +48,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        python -m pip install tree-sitter pytest wheel
+        python -m pip install tree-sitter==0.20.4 pytest wheel
     - name: Test with pytest
       run: |
         python setup.py sdist bdist_wheel
@@ -73,7 +73,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        python -m pip install mypy tree-sitter types-tree-sitter networkx
+        python -m pip install mypy tree-sitter==0.20.4 types-tree-sitter networkx
     - name: Test with mypy
       run: |
         mypy cinspector
