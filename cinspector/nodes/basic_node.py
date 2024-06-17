@@ -481,7 +481,9 @@ class BinaryExpressionNode(BasicNode):
         self.left = self.child_by_field_name('left')
         self.right = self.child_by_field_name('right')
         self.symbol = self.get_raw(self.internal_src, self.left.end_point,
-                                   self.right.start_point).strip()
+                                   self.right.start_point)
+        if self.symbol:
+            self.symbol = self.symbol.strip()
 
     def is_logic_op(self):
         if self.symbol in ['&&', '||']:

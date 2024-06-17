@@ -38,3 +38,28 @@ class TestSort:
         assert (descending[2].src == 'c')
         assert (descending[1].src == 'd')
         assert (descending[0].src == 'e')
+
+
+class TestPoint2Index:
+
+    def test_A(self):
+        s = "abcs\n12345"
+        point = (0, 0)
+        index = Util.point2index(s, point[0], point[1])
+        assert (index == 0)
+
+        point = (0, 4)
+        index = Util.point2index(s, point[0], point[1])
+        assert (index is None)
+
+        point = (-1, 4)
+        index = Util.point2index(s, point[0], point[1])
+        assert (index is None)
+
+        point = (2, 4)
+        index = Util.point2index(s, point[0], point[1])
+        assert (index is None)
+
+        point = (1, 4)
+        index = Util.point2index(s, point[0], point[1])
+        assert (index == 9)

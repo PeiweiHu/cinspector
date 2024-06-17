@@ -61,7 +61,19 @@ class Util():
                               reverse=reverse)
         return sorted_nodes
 
-    def get_raw(self, s: str, start: tuple, end: tuple):
+    @staticmethod
+    def get_raw(s: str, start: tuple, end: tuple) -> Optional[str]:
+        """ extracts from s the string fragment specified by the points start and end
+
+        Args:
+            s (str): a string
+            start (tuple): (row, column), specify the start of the fragment
+            end (tuple): (row, column), specify the end of the fragment
+
+        Return:
+            the extracted string, or None if it fails
+        """
+
         lst = s.split('\n')
         s_row, s_col = start
         e_row, e_col = end
@@ -79,10 +91,33 @@ class Util():
                     + '\n'.join(lst[s_row+1:e_row]) \
                     + lst[e_row][:e_col]
 
-    def get_node_raw(self, s: str, node):
+    @staticmethod
+    def get_node_raw(s: str, node):
         if not node:
             return None
-        return self.get_raw(s, node.start_point, node.end_point)
+        return Util.get_raw(s, node.start_point, node.end_point)
+
+    @staticmethod
+    def point2index(s: str, row: int, col: int) -> Optional[int]:
+        """ return the character index at the specified row and column in the string s.
+
+        Args:
+            s (str): a string
+            row (int): row, start from 0
+            col (int): column, start from 0
+
+        Return:
+            the character index, or None if it fails
+        """
+
+        lines = s.split('\n')
+        if row < 0 or row >= len(lines):
+            return None
+        if col < 0 or col >= len(lines[row]):
+            return None
+
+        index = sum(len(line) + 1 for line in lines[:row])
+        return index + col
 
 
 class Query():
