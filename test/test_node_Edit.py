@@ -1,5 +1,5 @@
 from cinspector.interfaces import CCode
-from cinspector.nodes import Edit, FunctionDefinitionNode
+from cinspector.nodes import Edit, FunctionDefinitionNode, EditPos, edit_str
 
 SRC = """
 void a(int p) {
@@ -24,3 +24,24 @@ class TestEdit:
         new_func = func_edit.remove_child(call_exp)
         assert (new_func.node_type == 'function_definition')
         assert (new_func.descendants_by_type_name('call_expression') == [])
+
+    def test_edit_str(self):
+        s = "012345678"
+        edits = []
+        edits.append(EditPos(1, 3, "a"))
+        edits.append(EditPos(5, 6, "bcd"))
+        s = edit_str(s, edits)
+        assert (s == '0a34bcd678')
+
+        s = "012345678"
+        edits = []
+        edits.append(EditPos(0, 30, "a"))
+        s = edit_str(s, edits)
+        assert (s == None)
+
+        s = "012345678"
+        edits = []
+        edits.append(EditPos(0, 4, "a"))
+        edits.append(EditPos(1, 4, "a"))
+        s = edit_str(s, edits)
+        assert (s == None)

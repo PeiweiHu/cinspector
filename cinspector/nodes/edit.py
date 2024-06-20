@@ -3,9 +3,42 @@ Edit nodes
 """
 
 from __future__ import annotations
-from typing import Tuple
+from typing import Tuple, List, Optional
 from .basic_node import BasicNode
 from .node import Util
+
+
+class EditPos:
+
+    def __init__(self, start: int, end: int, new_snippet: str) -> None:
+        self.start = start
+        self.end = end
+        self.new_snippet = new_snippet
+
+
+def edit_str(s: str, edits: List[EditPos]) -> Optional[str]:
+
+    edits = sorted(edits, key=lambda x: x.start)
+
+    for i in range(len(edits)):
+
+        # check whether there is overlap in the edits
+        if i != len(edits) - 1 and edits[i].end > edits[i + 1].start:
+            return None
+
+        # check whether the start and end are within the string
+        if edits[i].start < 0 or edits[i].end > len(s):
+            return None
+
+    # start replacing
+    s_lst = list(s)
+    gap_cnt = 0
+    for edit in edits:
+        s_lst[edit.start + gap_cnt:edit.end + gap_cnt] = list(edit.new_snippet)
+        gap = len(edit.new_snippet) - (edit.end - edit.start)
+        gap_cnt += gap
+
+    return ''.join(s_lst)
 
 
 class Edit(Util):
